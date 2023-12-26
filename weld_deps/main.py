@@ -45,7 +45,7 @@ def clean_pack(ctx : Context, pack: Union[DataPack, ResourcePack]) -> Union[Data
 
 
 def load_deps(ctx : Context, deps: dict[Dep, Version]):
-    # weld.toolchain.main.weld(ctx)
+    weld.toolchain.main.weld(ctx)
     cache_dir = ctx.cache.path / "weld_deps"
     for dep, version in deps.items():
         datapack_id = get_identifier(dep, version, "dp")
