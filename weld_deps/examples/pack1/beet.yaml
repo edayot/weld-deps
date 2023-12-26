@@ -1,0 +1,22 @@
+id: test
+require:
+  - weld_deps
+
+data_pack:
+  load: src
+
+pipeline:
+  - mecha
+
+output: dist
+
+meta:
+  weld_deps:
+    clean_load_tag: False
+    deps:
+      - id: "custom-block"
+        match: ">=0.2.0"
+        source: "smithed"
+      - id: "itemio"
+        match: ">=0.9.0"
+        source: "smithed"

@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "weld-deps"
+version = "0.1.0"
+description = ""
+authors = ["edayot"]
+license = "mit"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+smithed = {git = "https://github.com/Smithed-MC/smithed-python.git", branch = "main"}
+requests = "^2.31.0"
+semver = "^3.0.2"
+
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
