@@ -113,6 +113,10 @@ class Dep():
             for v in versions:
                 v_dep = {}
                 for dep in v["dependencies"]:
+                    if dep["dependency_type"] == "optional":
+                        continue
+                    if dep["dependency_type"] == "incompatible":
+                        raise NotImplementedError("Incompatible dependencies are not supported")
                     dep_obj = Dep(id=dep["project_id"], source=Source.MODRINTH)
                     v_dep[dep_obj] = dep["version_id"]
                 datapack_download_url, resourcepack_download_url = None, None
