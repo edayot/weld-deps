@@ -85,7 +85,9 @@ def cache_deps(ctx : Context, deps: dict[Dep, Version]):
             resourcepack_path.write_bytes(resourcepack)
 
 
-def resolve_dep(dist: Dict[Dep, str]) -> Dict[Dep, Version]:
+def resolve_dep(dist: Dict[Dep, str], max_recursion : int = 256) -> Dict[Dep, Version]:
+    if max_recursion == 0:
+        raise RecursionError("Max recursion reached")
     resolved_deps = {}
 
     for dep, version_expr in dist.items():
@@ -99,6 +101,6 @@ def resolve_dep(dist: Dict[Dep, str]) -> Dict[Dep, Version]:
 
         # Recursively resolve dependencies for the chosen version
         resolved_deps[dep] = matching_version
-        resolved_deps.update(resolve_dep(matching_version.dependencies))
+        resolved_deps.update(resolve_dep(matching_version.dependencies, max_recursion=max_recursion - 1))
 
     return resolved_deps

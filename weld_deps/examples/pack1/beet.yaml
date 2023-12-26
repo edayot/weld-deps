@@ -20,3 +20,6 @@ meta:
       - id: "itemio"
         match: ">=0.9.0"
         source: "smithed"
+      - id: "code-of-copper"
+        match: "0.1.0"
+        source: "modrinth"
