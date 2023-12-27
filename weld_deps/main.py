@@ -4,8 +4,7 @@ from pprint import pprint
 from typing import  Union
 import semver
 from .dep import Dep, Source, VersionedDep, get_id_slug
-import pathlib
-import itertools
+import requests
 
         
 
@@ -25,18 +24,39 @@ def get_filename(dep: VersionedDep, pack_type) -> str:
 def get_identifier(dep: VersionedDep) -> str:
     return f"{dep.id}@{dep.source}"
 
+def get_dict_identifier(dep):
+    return f'{dep["id"]}@{dep["source"]}#{dep["match"]}'
+
 def beet_default(ctx: Context):
     deps = ctx.meta.get("weld_deps", {}).get("deps", [])
     if len(deps) == 0:
         return
+    # get a hash of the deps
+    deps_hash = set()
+    [deps_hash.add(get_dict_identifier(d)) for d in deps]
+
+    # check if deps are cached
+    if "weld_deps" in ctx.cache.json:
+        if "deps" in ctx.cache.json["weld_deps"]:
+            if set(ctx.cache.json["weld_deps"]["deps"]) == deps_hash:
+                download_from_urls(ctx, ctx.cache.json["weld_deps"]["urls"], ctx.cache.json["weld_deps"]["files"])
+                load_deps(ctx, ctx.cache.json["weld_deps"]["files"])
+                return
+
     deps = parse_deps(deps)
 
     deps = resolve_deps(deps)
 
     # cache deps
-    cache_deps(ctx, deps)
+    files, urls = cache_deps(ctx, deps)
 
-    load_deps(ctx, deps)
+    ctx.cache.json["weld_deps"] = {
+        "deps": list(deps_hash),
+        "files": list(files),
+        "urls": list(urls)
+    }
+
+    load_deps(ctx, files)
 
 
 def clean_pack(ctx : Context, pack: Union[DataPack, ResourcePack]) -> Union[DataPack, ResourcePack]:
@@ -49,27 +69,27 @@ def clean_pack(ctx : Context, pack: Union[DataPack, ResourcePack]) -> Union[Data
 
 
 
-def load_deps(ctx : Context, deps: list[VersionedDep]):
+def load_deps(ctx : Context, files : list[str]):
     weld.toolchain.main.weld(ctx)
     cache_dir = ctx.cache.path / "weld_deps"
-    for dep in deps:
-        datapack_id = get_filename(dep, "dp")
-        datapack_path = cache_dir / datapack_id
-        if datapack_path.exists():
-            data = DataPack(zipfile=datapack_path)
+
+    for file in files:
+        if file.endswith("dp.zip"):
+            data = DataPack(zipfile=cache_dir / file)
             data = clean_pack(ctx, data)
             ctx.data.merge(data)
-        resourcepack_id = get_filename(dep, "rp")
-        resourcepack_path = cache_dir / resourcepack_id
-        if resourcepack_path.exists():
-            resource = ResourcePack(zipfile=resourcepack_path)
+        elif file.endswith("rp.zip"):
+            resource = ResourcePack(zipfile=cache_dir / file)
             resource = clean_pack(ctx, resource)
             ctx.assets.merge(resource)
-            
+
     
 def cache_deps(ctx : Context, deps: list[VersionedDep]):
     cache_dir = ctx.cache.path / "weld_deps"
     cache_dir.mkdir(exist_ok=True)
+
+    result = []
+    result_urls = []
     
     for dep in deps:
         datapack_id = get_filename(dep, "dp")
@@ -88,6 +108,23 @@ def cache_deps(ctx : Context, deps: list[VersionedDep]):
         ):
             resourcepack = dep.get_resourcepack()
             resourcepack_path.write_bytes(resourcepack)
+        if dep.datapack_download_url and dep.datapack_download_url.startswith("https://"):
+            result.append(get_filename(dep, "dp"))
+            result_urls.append(dep.datapack_download_url)
+        if dep.resourcepack_download_url and dep.resourcepack_download_url.startswith("https://"):
+            result.append(get_filename(dep, "rp"))
+            result_urls.append(dep.resourcepack_download_url)
+    return result, result_urls
+
+def download_from_urls(ctx : Context, urls: list[str], files: list[str]):
+    cache_dir = ctx.cache.path / "weld_deps"
+    cache_dir.mkdir(exist_ok=True)
+
+    for url, file in zip(urls, files):
+        path = cache_dir / file
+        if not path.exists():
+            path.write_bytes(requests.get(url).content)
+        
 
 
 def resolve_deps(deps: dict[Dep, str]) -> list[VersionedDep]:
@@ -103,10 +140,14 @@ def resolve_deps(deps: dict[Dep, str]) -> list[VersionedDep]:
         add_deps(versions[0], new_deps)
     return new_deps.values()
 
-def add_deps(dep: VersionedDep, deps: set[VersionedDep]):
+def add_deps(dep: VersionedDep, deps: dict[str, VersionedDep]):
     for d in dep.dependencies:
         
-        deps[get_identifier(d)] = d
+        id_d = get_identifier(d)
+        if id_d not in deps:
+            deps[id_d] = d
+        elif semver.VersionInfo.parse(deps[id_d].version) < semver.VersionInfo.parse(d.version):
+            deps[id_d] = d
         if len(d.dependencies) > 0:
             add_deps(d, deps)
 
