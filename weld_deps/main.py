@@ -1,22 +1,26 @@
 from beet import Context, DataPack, ResourcePack
 from smithed import weld
 from pprint import pprint
-from typing import Dict, Union
-from semver import VersionInfo
-from .dep import Dep, Version, Source
+from typing import  Union
+import semver
+from .dep import Dep, Source, VersionedDep, get_id_slug
 import pathlib
+import itertools
 
         
 
 
 def parse_deps(deps: list[dict]) -> dict[Dep, str]:
-    return {
-        Dep(id=d["id"], source=Source(d["source"])): d["match"]
-        for d in deps
-    }
+    result = {}
+    for d in deps:
+        id, slug = get_id_slug(d["id"], Source(d["source"]))
+        dep = Dep(id=id, source=Source(d["source"]), slug=slug)
+        match = d["match"]
+        result[dep] = match
+    return result
 
-def get_identifier(dep: Dep, version: Version, pack_type) -> str:
-    return f"{dep.identifier}-{version.version}-{pack_type}.zip"
+def get_identifier(dep: VersionedDep, pack_type) -> str:
+    return f"{dep.identifier}-{pack_type}.zip"
 
 
 
@@ -26,12 +30,9 @@ def beet_default(ctx: Context):
         return
     deps = parse_deps(deps)
 
-
-    resolved_deps = resolve_dep(deps)
-
-    cache_deps(ctx, resolved_deps)
-
-    load_deps(ctx, resolved_deps)
+    for dep in deps:
+        print(dep)
+        pprint(dep.get_versions())
 
 
 def clean_pack(ctx : Context, pack: Union[DataPack, ResourcePack]) -> Union[DataPack, ResourcePack]:
@@ -44,7 +45,7 @@ def clean_pack(ctx : Context, pack: Union[DataPack, ResourcePack]) -> Union[Data
 
 
 
-def load_deps(ctx : Context, deps: dict[Dep, Version]):
+def load_deps(ctx : Context, deps: dict[Dep]):
     weld.toolchain.main.weld(ctx)
     cache_dir = ctx.cache.path / "weld_deps"
     for dep, version in deps.items():
@@ -62,7 +63,7 @@ def load_deps(ctx : Context, deps: dict[Dep, Version]):
             ctx.assets.merge(resource)
             
     
-def cache_deps(ctx : Context, deps: dict[Dep, Version]):
+def cache_deps(ctx : Context, deps: dict[Dep]):
     cache_dir = ctx.cache.path / "weld_deps"
     cache_dir.mkdir(exist_ok=True)
     
@@ -85,22 +86,4 @@ def cache_deps(ctx : Context, deps: dict[Dep, Version]):
             resourcepack_path.write_bytes(resourcepack)
 
 
-def resolve_dep(dist: Dict[Dep, str], max_recursion : int = 256) -> Dict[Dep, Version]:
-    if max_recursion == 0:
-        raise RecursionError("Max recursion reached")
-    resolved_deps = {}
 
-    for dep, version_expr in dist.items():
-        available_versions = dep.get_available_versions(version_expr)
-
-        if not available_versions:
-            raise RuntimeError(f"No available versions for dependency {dep.identifier}")
-
-        # Choose the highest version that matches the version expression
-        matching_version = max(available_versions, key=lambda v: VersionInfo.parse(v.version))
-
-        # Recursively resolve dependencies for the chosen version
-        resolved_deps[dep] = matching_version
-        resolved_deps.update(resolve_dep(matching_version.dependencies, max_recursion=max_recursion - 1))
-
-    return resolved_deps
