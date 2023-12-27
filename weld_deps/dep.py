@@ -107,8 +107,8 @@ class Dep(BaseModel):
 class VersionedDep(Dep):
     version : str
     dependencies : list["VersionedDep"]
-    datapack_download_url : str | None = None
-    resourcepack_download_url : str | None = None
+    datapack_download_url : str | None
+    resourcepack_download_url : str | None
 
     @property
     def identifier(self) -> str:
@@ -116,4 +116,17 @@ class VersionedDep(Dep):
 
     def __hash__(self) -> int:
         return hash(self.identifier)
+    
+    def get_datapack(self) -> bytes:
+        if self.datapack_download_url is None:
+            raise ValueError("No datapack download url")
+        r = requests.get(self.datapack_download_url)
+        r.raise_for_status()
+        return r.content
 
+    def get_resourcepack(self) -> bytes:
+        if self.resourcepack_download_url is None:
+            raise ValueError("No resourcepack download url")
+        r = requests.get(self.resourcepack_download_url)
+        r.raise_for_status()
+        return r.content

@@ -17,3 +17,6 @@ meta:
       - id: "simpledrawer"
         match: "1.10.2"
         source: "smithed"
+      - id: "itemio"
+        match: "0.9.1"
+        source: "smithed"
