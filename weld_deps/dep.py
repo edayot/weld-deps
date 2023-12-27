@@ -7,16 +7,12 @@ from typing import Dict, List
 import itertools
 from pydantic import BaseModel
 
-UID_MAP : dict[str, str] = {}
-SLUG_MAP : dict[str, str] = {}
 CACHED_VERSIONS : dict[str, List["VersionedDep"]] = {}
 
+UID_MAP : dict[str, str] = {}
+SLUG_MAP : dict[str, str] = {}
 
-class Source(Enum):
-    SMITHED = "smithed"
-    MODRINTH = "modrinth"
-
-def get_id_slug(id: str, source : Source) -> str:
+def get_id_slug(id: str, source : "Source") -> str:
     if id in UID_MAP:
         return UID_MAP[id], SLUG_MAP[id]
     elif source == Source.SMITHED:
@@ -43,7 +39,12 @@ def get_id_slug(id: str, source : Source) -> str:
         return uid, slug
     else:
         raise ValueError("Invalid source")
+    
 
+
+class Source(Enum):
+    SMITHED = "smithed"
+    MODRINTH = "modrinth"
 
 class Dep(BaseModel):
     source : Source
