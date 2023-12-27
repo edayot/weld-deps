@@ -14,6 +14,15 @@ from .utils import (
 
 
 def beet_default(ctx: Context):
+    enable_weld_merging = ctx.meta["weld_deps"].get("enable_weld_merging", True)
+    clean_load_tag = ctx.meta["weld_deps"].get("clean_load_tag", True)
+    include_prerelease = ctx.meta["weld_deps"].get("include_prerelease", False)
+    params = {
+        "clean_load_tag": clean_load_tag,
+        "enable_weld_merging": enable_weld_merging,
+        "include_prerelease": include_prerelease
+    }
+
     deps = ctx.meta.get("weld_deps", {}).get("deps", [])
     if len(deps) == 0:
         return
@@ -23,26 +32,28 @@ def beet_default(ctx: Context):
 
     # check if deps are cached
     if "weld_deps" in ctx.cache.json:
-        if "deps" in ctx.cache.json["weld_deps"]:
-            if set(ctx.cache.json["weld_deps"]["deps"]) == deps_hash:
-                download_from_urls(ctx, ctx.cache.json["weld_deps"]["urls"], ctx.cache.json["weld_deps"]["files"])
-                load_deps(ctx, ctx.cache.json["weld_deps"]["files"])
+        cache = ctx.cache.json["weld_deps"]
+        if "deps" in cache:
+            if set(cache["deps"]) == deps_hash and cache["params"] == params:
+                download_from_urls(ctx, cache["urls"], cache["files"])
+                load_deps(ctx, cache["files"], clean_load_tag, enable_weld_merging)
                 return
 
     deps = parse_deps(deps)
 
-    deps = resolve_deps(deps)
+    deps = resolve_deps(deps, include_prerelease)
 
     # cache deps
     files, urls = cache_deps(ctx, deps)
 
     ctx.cache.json["weld_deps"] = {
         "deps": list(deps_hash),
+        "params": params,
         "files": list(files),
         "urls": list(urls)
     }
 
-    load_deps(ctx, files)
+    load_deps(ctx, files, clean_load_tag, enable_weld_merging)
 
 
 

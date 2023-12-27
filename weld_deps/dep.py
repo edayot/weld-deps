@@ -6,6 +6,7 @@ import semver
 from typing import Dict, List
 import itertools
 from pydantic import BaseModel
+from pprint import pprint
 
 CACHED_VERSIONS : dict[str, List["VersionedDep"]] = {}
 
@@ -98,7 +99,41 @@ class Dep(BaseModel):
                 )
                 l_versions.append(v_obj)
         elif self.source == Source.MODRINTH:
-            raise NotImplementedError()
+            for v in versions:
+                l_deps = []
+                for dep in v["dependencies"]:
+                    if dep["dependency_type"] == "optional":
+                        continue
+                    id, slug = get_id_slug(dep["project_id"], Source.MODRINTH)
+                    d_obj = Dep(
+                        source = self.source,
+                        id = id,
+                        slug = slug,
+                    )
+                    d_obj_versions = d_obj.get_versions()
+                    if dep["version_id"] is None:
+                        continue
+                    d_obj_version = [v for v in d_obj_versions if v.version_id == dep["version_id"]][0]
+                    l_deps.append(d_obj_version)
+                
+                dp_url, rp_url = None, None
+                for f in v["files"]:
+                    if f["primary"]:
+                        dp_url = f["url"]
+                    elif f["file_type"] in ["required-resource-pack", "optional-resource-pack"]:
+                        rp_url = f["url"]
+
+                v_obj = VersionedDep(
+                    id = self.id,
+                    slug = self.slug,
+                    source = self.source,
+                    version = v["version_number"],
+                    version_id=v["id"],
+                    dependencies = l_deps,
+                    datapack_download_url = dp_url,
+                    resourcepack_download_url = rp_url,
+                )
+                l_versions.append(v_obj)
         CACHED_VERSIONS[self.identifier] = l_versions
         return l_versions
                     
@@ -110,6 +145,7 @@ class VersionedDep(Dep):
     dependencies : list["VersionedDep"]
     datapack_download_url : str | None
     resourcepack_download_url : str | None
+    version_id : str | None = None
 
     @property
     def identifier(self) -> str:

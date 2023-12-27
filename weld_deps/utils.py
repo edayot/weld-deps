@@ -8,7 +8,7 @@ from smithed import weld
 from beet import Context, DataPack, ResourcePack
 
 
-from .dep import VersionedDep, Dep, Source
+from .dep import VersionedDep, Dep, Source, get_id_slug
 
 
 
@@ -41,11 +41,15 @@ def parse_deps(deps: list[dict]) -> dict[Dep, str]:
         result[dep] = match
     return result
 
-def resolve_deps(deps: dict[Dep, str]) -> list[VersionedDep]:
+def resolve_deps(deps: dict[Dep, str], include_prerelease : bool) -> list[VersionedDep]:
     new_deps = dict()
     for dep in deps:
         # sort versions by semver
         versions = sorted(dep.get_versions(), key=lambda v: semver.VersionInfo.parse(v.version), reverse=True)
+        if not include_prerelease:
+            versions = [v for v in versions if not semver.VersionInfo.parse(v.version).prerelease]
+            versions = [v for v in versions if not semver.VersionInfo.parse(v.version).build]
+
         # filter versions by match
         versions = [v for v in versions if semver.match(v.version, deps[dep])]
         # append newest version
@@ -71,19 +75,19 @@ Caching
 """
 
 
-def load_deps(ctx : Context, files : list[str]):
-    if ctx.meta["weld_deps"].get("enable_weld_merging", True):
+def load_deps(ctx : Context, files : list[str], clean_load_tag : bool, enable_weld_merging : bool):
+    if enable_weld_merging:
         weld.toolchain.main.weld(ctx)
     cache_dir = ctx.cache.path / "weld_deps"
 
     for file in files:
         if file.endswith("dp.zip"):
             data = DataPack(zipfile=cache_dir / file)
-            data = clean_pack(ctx, data)
+            data = clean_pack(ctx, data, clean_load_tag)
             ctx.data.merge(data)
         elif file.endswith("rp.zip"):
             resource = ResourcePack(zipfile=cache_dir / file)
-            resource = clean_pack(ctx, resource)
+            resource = clean_pack(ctx, resource, clean_load_tag)
             ctx.assets.merge(resource)
 
     
@@ -126,10 +130,10 @@ def download_from_urls(ctx : Context, urls: list[str], files: list[str]):
 
 
 
-def clean_pack(ctx : Context, pack: Union[DataPack, ResourcePack]) -> Union[DataPack, ResourcePack]:
+def clean_pack(ctx : Context, pack: Union[DataPack, ResourcePack], clean_load_tag : bool) -> Union[DataPack, ResourcePack]:
     if "pack.png" in pack.extra:
         del pack.extra["pack.png"]
-    if isinstance(pack, DataPack) and "load:load" in pack.function_tags and ctx.meta["weld_deps"].get("clean_load_tag", False):
+    if isinstance(pack, DataPack) and "load:load" in pack.function_tags and clean_load_tag:
         del pack.function_tags["load:load"]
     return pack
 
