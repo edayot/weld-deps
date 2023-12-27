@@ -5,7 +5,7 @@ from typing import  Union
 import semver
 from .dep import Dep, Source, VersionedDep, get_id_slug
 import requests
-
+import time
         
 
 
@@ -28,6 +28,7 @@ def get_dict_identifier(dep):
     return f'{dep["id"]}@{dep["source"]}#{dep["match"]}'
 
 def beet_default(ctx: Context):
+    t1 = time.perf_counter()
     deps = ctx.meta.get("weld_deps", {}).get("deps", [])
     if len(deps) == 0:
         return
@@ -41,6 +42,8 @@ def beet_default(ctx: Context):
             if set(ctx.cache.json["weld_deps"]["deps"]) == deps_hash:
                 download_from_urls(ctx, ctx.cache.json["weld_deps"]["urls"], ctx.cache.json["weld_deps"]["files"])
                 load_deps(ctx, ctx.cache.json["weld_deps"]["files"])
+                t2 = time.perf_counter()
+                print(f"Execution time: {t2 - t1:0.4f} seconds")
                 return
 
     deps = parse_deps(deps)
@@ -57,6 +60,8 @@ def beet_default(ctx: Context):
     }
 
     load_deps(ctx, files)
+    t2 = time.perf_counter()
+    print(f"Execution time: {t2 - t1:0.4f} seconds")
 
 
 def clean_pack(ctx : Context, pack: Union[DataPack, ResourcePack]) -> Union[DataPack, ResourcePack]:
@@ -70,7 +75,8 @@ def clean_pack(ctx : Context, pack: Union[DataPack, ResourcePack]) -> Union[Data
 
 
 def load_deps(ctx : Context, files : list[str]):
-    weld.toolchain.main.weld(ctx)
+    if ctx.meta["weld_deps"].get("enable_weld_merging", True):
+        weld.toolchain.main.weld(ctx)
     cache_dir = ctx.cache.path / "weld_deps"
 
     for file in files:

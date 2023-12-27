@@ -12,6 +12,7 @@ output: dist
 
 meta:
   weld_deps:
+    enable_weld_merging: False
     clean_load_tag: False
     deps:
       - id: "custom-block"
