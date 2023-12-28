@@ -59,7 +59,9 @@ def resolve_deps(deps: dict[Dep, str], include_prerelease: bool) -> list[Version
                 if not semver.VersionInfo.parse(v.version).prerelease
             ]
             versions = [
-                v for v in versions if not semver.VersionInfo.parse(v.version).build
+                v 
+                for v in versions 
+                if not semver.VersionInfo.parse(v.version).build
             ]
 
         # filter versions by match
