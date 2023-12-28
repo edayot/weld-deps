@@ -10,6 +10,7 @@ python = "^3.11"
 smithed = {git = "https://github.com/Smithed-MC/smithed-python.git", branch = "main"}
 requests = "^2.31.0"
 semver = "^3.0.2"
+black = "^23.12.1"
 
 
 
