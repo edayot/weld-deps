@@ -6,11 +6,8 @@ from .utils import (
     resolve_deps,
     cache_deps,
     download_from_urls,
-    load_deps
+    load_deps,
 )
-        
-
-
 
 
 def beet_default(ctx: Context):
@@ -20,7 +17,7 @@ def beet_default(ctx: Context):
     params = {
         "clean_load_tag": clean_load_tag,
         "enable_weld_merging": enable_weld_merging,
-        "include_prerelease": include_prerelease
+        "include_prerelease": include_prerelease,
     }
 
     deps = ctx.meta.get("weld_deps", {}).get("deps", [])
@@ -50,10 +47,7 @@ def beet_default(ctx: Context):
         "deps": list(deps_hash),
         "params": params,
         "files": list(files),
-        "urls": list(urls)
+        "urls": list(urls),
     }
 
     load_deps(ctx, files, clean_load_tag, enable_weld_merging)
-
-
-
