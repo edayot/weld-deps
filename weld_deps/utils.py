@@ -33,17 +33,18 @@ Working with deps
 """
 
 
-def parse_deps(deps: list[dict]) -> dict[Dep, str]:
+def parse_deps(deps: list[dict]) -> dict[Dep, list[str]]:
     result = {}
     for d in deps:
         id, slug = get_id_slug(d["id"], Source(d["source"]))
         dep = Dep(id=id, source=Source(d["source"]), slug=slug)
-        match = d["match"]
+        match = d["match"].split(",")
+        match = [m.strip() for m in match]
         result[dep] = match
     return result
 
 
-def resolve_deps(deps: dict[Dep, str], include_prerelease: bool) -> list[VersionedDep]:
+def resolve_deps(deps: dict[Dep, list[str]], include_prerelease: bool) -> list[VersionedDep]:
     new_deps = dict()
     for dep in deps:
         # sort versions by semver
@@ -65,7 +66,7 @@ def resolve_deps(deps: dict[Dep, str], include_prerelease: bool) -> list[Version
             ]
 
         # filter versions by match
-        versions = [v for v in versions if semver.match(v.version, deps[dep])]
+        versions = [v for v in versions if all([semver.match(v.version, deps[dep][i]) for i in range(len(deps[dep]))])]
         # append newest version
         new_deps[get_identifier(versions[0])] = versions[0]
         # append dependencies
