@@ -21,6 +21,7 @@ def beet_default(ctx: Context):
     }
 
     deps = ctx.meta.get("weld_deps", {}).get("deps", [])
+    deps = [d for d in deps if d["source"] != "integrated"]
     if len(deps) == 0:
         return
     # get a hash of the deps
