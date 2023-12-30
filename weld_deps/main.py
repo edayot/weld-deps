@@ -51,4 +51,6 @@ def beet_default(ctx: Context):
         "urls": list(urls),
     }
 
+    ctx.cache.json["weld_deps_installed"] = {dep.slug: dep.version for dep in deps}
+
     load_deps(ctx, files, clean_load_tag, enable_weld_merging)
