@@ -54,7 +54,7 @@ jobs:
 
           git add pyproject.toml
           git commit -m "$(poetry version -s)"
-          git tag -a $(poetry version -s) -m "Release $(poetry version -s)"
+          git tag -a "v$(poetry version -s)" -m "v$(poetry version -s)"
           git push origin $(poetry version -s)
           git push origin main
           
