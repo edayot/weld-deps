@@ -53,7 +53,7 @@ jobs:
           poetry publish --username __token__ --password $PYPI_TOKEN
 
           git add pyproject.toml
-          git commit -m "v$(poetry version -s)"
+          git commit -m "$(poetry version -s)"
           git tag -a $(poetry version -s) -m "Release $(poetry version -s)"
           git push origin $(poetry version -s)
           git push origin main
