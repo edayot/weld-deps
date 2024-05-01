@@ -14,7 +14,7 @@ def beet_default(ctx: Context):
 
     if "weld_deps" not in ctx.meta:
         return
-    if ctx.meta["weld_deps"].get("enabled", False) == False:
+    if ctx.meta["weld_deps"].get("enabled", True) == False:
         return
 
 
