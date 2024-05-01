@@ -11,6 +11,13 @@ from .utils import (
 
 
 def beet_default(ctx: Context):
+
+    if "weld_deps" not in ctx.meta:
+        return
+    if ctx.meta["weld_deps"].get("enabled", False) == False:
+        return
+
+
     enable_weld_merging = ctx.meta["weld_deps"].get("enable_weld_merging", True)
     clean_load_tag = ctx.meta["weld_deps"].get("clean_load_tag", True)
     include_prerelease = ctx.meta["weld_deps"].get("include_prerelease", False)
