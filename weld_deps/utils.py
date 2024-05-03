@@ -50,7 +50,7 @@ def resolve_deps(deps: dict[Dep, list[str]], include_prerelease: bool) -> list[V
         # sort versions by semver
         versions = sorted(
             dep.get_versions(),
-            key=lambda v: semver.VersionInfo.parse(v.version),
+            key=lambda v: semver.VersionInfo.parse(v.version.lstrip("v")),
             reverse=True,
         )
         if not include_prerelease:
