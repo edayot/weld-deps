@@ -57,16 +57,16 @@ def resolve_deps(deps: dict[Dep, list[str]], include_prerelease: bool) -> list[V
             versions = [
                 v
                 for v in versions
-                if not semver.VersionInfo.parse(v.version).prerelease
+                if not semver.VersionInfo.parse(v.version.lstrip("v")).prerelease
             ]
             versions = [
                 v 
                 for v in versions 
-                if not semver.VersionInfo.parse(v.version).build
+                if not semver.VersionInfo.parse(v.version.lstrip("v")).build
             ]
 
         # filter versions by match
-        versions = [v for v in versions if all([semver.match(v.version, deps[dep][i]) for i in range(len(deps[dep]))])]
+        versions = [v for v in versions if all([semver.match(v.version.lstrip("v"), deps[dep][i]) for i in range(len(deps[dep]))])]
         # append newest version
         new_deps[get_identifier(versions[0])] = versions[0]
         # append dependencies

@@ -14,12 +14,7 @@ meta:
     clean_load_tag: False
     include_prerelease: False
     deps:
-      - id: "custom-block"
-        match: ">0.0.0"
-        source: "smithed"
-      - id: "itemio"
-        match: ">0.7.0, <0.7.2"
-        source: "smithed"
-      - id: "code-of-copper"
+
+      - id: "fluid_crafting"
         match: ">0.1.0"
-        source: "modrinth"
+        source: "smithed"
