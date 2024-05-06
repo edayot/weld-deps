@@ -15,6 +15,6 @@ meta:
     include_prerelease: False
     deps:
 
-      - id: "fluid_crafting"
-        match: ">2.1.0"
+      - id: "blablabla"
+        match: ">0.0.0"
         source: "smithed"

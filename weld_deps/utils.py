@@ -68,6 +68,8 @@ def resolve_deps(deps: dict[Dep, list[str]], include_prerelease: bool) -> list[V
         # filter versions by match
         versions = [v for v in versions if all([semver.match(v.version.lstrip("v"), deps[dep][i]) for i in range(len(deps[dep]))])]
         # append newest version
+        if len(versions) == 0:
+            raise ValueError(f"Could not find a version for {dep.slug} that matches the requirements: {deps[dep]}, available versions: {', '.join([v.version for v in dep.get_versions()])}")
         new_deps[get_identifier(versions[0])] = versions[0]
         # append dependencies
         add_deps(versions[0], new_deps)

@@ -69,9 +69,14 @@ class Dep(BaseModel):
     def get_versions(self) -> List["VersionedDep"]:
         if self.identifier in CACHED_VERSIONS:
             return CACHED_VERSIONS[self.identifier]
-        r = requests.get(self.versions_url)
-        r.raise_for_status()
-        versions = r.json()
+        try:
+            r = requests.get(self.versions_url)
+            r.raise_for_status()
+            versions = r.json()
+        except requests.exceptions.HTTPError as e:
+            raise ValueError(f"Failed to get versions for {self.identifier}, {e}")
+        except e:
+            raise e
 
         l_versions = []
         if self.source == Source.SMITHED:
