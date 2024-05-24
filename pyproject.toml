@@ -11,7 +11,7 @@ smithed = ">=0.16.0"
 beet=">=0.104.1"
 requests = "^2.31.0"
 semver = "^3.0.2"
-black = "^23.12.1"
+black = "^24.4.2"
 
 
 
