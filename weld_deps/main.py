@@ -1,32 +1,110 @@
-from beet import Context, configurable
+from beet import Context, configurable, DataPack, ResourcePack
 from pprint import pprint
 from pydantic import BaseModel
+from typing_extensions import TypedDict, NotRequired, Union
 from enum import Enum
+import json
+import requests
+import pathlib
+from smithed import weld
 
 class Source(str, Enum):
     integrated = "integrated"
     smithed = "smithed"
 
+class Downloads(TypedDict):
+    resourcepack: NotRequired[str]
+    datapack: NotRequired[str]
+
 class WeldDep(BaseModel):
+    id: str
+    name: str
+    downloads: Downloads
+
+    def download(self, ctx: Context) -> tuple[pathlib.Path | None, pathlib.Path | None]:
+        cache = ctx.cache["weld_deps"]
+        rp, dp = None, None
+        if url := self.downloads.get("resourcepack"):
+            rp = cache.download(url)
+        if url := self.downloads.get("datapack"):
+            dp = cache.download(url)
+        return rp, dp
+
+class WeldDepConfig(BaseModel):
     id: str
     version: str
     source: Source
+
+    def resolve(self, ctx: Context, resolved_deps : list[WeldDep]):
+        if self.source == Source.integrated:
+            return
+        url = f"https://api.smithed.dev/v2/packs/{self.id}"
+        cache = ctx.cache["weld_deps"]
+        path = cache.get_path(url)
+        if not path.exists():
+            response = requests.get(url)
+            try:
+                response.raise_for_status()
+            except requests.HTTPError as e:
+                raise ValueError(f"Pack {self.id} not found") from e
+            path.write_text(response.text)
+        data = json.loads(path.read_text())
+
+        versions = filter(lambda x: x["name"] == self.version, data["versions"])
+        versions = list(versions)
+        if len(versions) == 0:
+            raise ValueError(f"Version {self.version} of pack {self.id} not found")
+        version = versions[0]
+        resolved_deps.append(WeldDep(
+            id=data["id"],
+            name=version["name"],
+            downloads=Downloads(**version["downloads"])
+        ))
+        for dep in version.get("dependencies", []):
+            WeldDepConfig(
+                id=dep["id"],
+                version=dep["version"],
+                source=Source.smithed
+            ).resolve(ctx, resolved_deps)        
 
 
 class WeldDepsConfig(BaseModel):
     enabled: bool = True
     enable_weld_merging: bool = True
     clean_load_tag: bool = True
-    include_prerelease: bool = False
-    deps: list[WeldDep] = []
+    deps: list[WeldDepConfig] = []
 
 
 @configurable("weld_deps", validator=WeldDepsConfig)
 def beet_default(ctx: Context, opts: WeldDepsConfig):
-
     if not opts.enabled:
         return
+    if opts.enable_weld_merging:
+        weld.toolchain.main.weld(ctx)
     
-    print(opts)
+    resolved_deps : list[WeldDep] = []
+    for dep in opts.deps:
+        dep.resolve(ctx, resolved_deps)
+    for dep in resolved_deps:
+        rp, dp = dep.download(ctx)
+        if rp:
+            assets = ResourcePack(zipfile=rp)
+            clean_pack(assets, opts)
+            ctx.assets.merge(assets)
+        if dp:
+            data = DataPack(zipfile=dp)
+            clean_pack(data, opts)
+            ctx.data.merge(data)
 
-    
+
+def clean_pack(
+    pack: Union[DataPack, ResourcePack], opts: WeldDepsConfig
+):
+    if "pack.png" in pack.extra:
+        del pack.extra["pack.png"]
+    if (
+        isinstance(pack, DataPack)
+        and "load:load" in pack.function_tags
+        and opts.clean_load_tag
+    ):
+        del pack.function_tags["load:load"]

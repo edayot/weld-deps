@@ -12,9 +12,7 @@ meta:
   weld_deps:
     enable_weld_merging: False
     clean_load_tag: False
-    include_prerelease: False
     deps:
-
       - id: "blablabla"
-        match: ">0.0.0"
+        version: "0.0.0"
         source: "smithed"
