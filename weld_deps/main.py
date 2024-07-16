@@ -33,7 +33,7 @@ class WeldDep(BaseModel):
 class WeldDepConfig(BaseModel):
     id: str
     version: str
-    source: Source
+    source: Source = Source.smithed
 
     def resolve(self, ctx: Context, resolved_deps : list[WeldDep]):
         if self.source == Source.integrated:
