@@ -70,8 +70,6 @@ class WeldDepConfig(BaseModel):
 
 class WeldDepsConfig(BaseModel):
     enabled: bool = True
-    enable_weld_merging: bool = True
-    clean_load_tag: bool = True
     deps: list[WeldDepConfig] = []
 
 
@@ -79,8 +77,7 @@ class WeldDepsConfig(BaseModel):
 def beet_default(ctx: Context, opts: WeldDepsConfig):
     if not opts.enabled:
         return
-    if opts.enable_weld_merging:
-        weld.toolchain.main.weld(ctx)
+    weld.toolchain.main.weld(ctx)
     
     resolved_deps : list[WeldDep] = []
     for dep in opts.deps:
@@ -88,23 +85,7 @@ def beet_default(ctx: Context, opts: WeldDepsConfig):
     for dep in resolved_deps:
         rp, dp = dep.download(ctx)
         if rp:
-            assets = ResourcePack(zipfile=rp)
-            clean_pack(assets, opts)
-            ctx.assets.merge(assets)
+            ctx.require(weld.toolchain.main.subproject_config(weld.toolchain.main.PackType.ASSETS, rp))       
         if dp:
-            data = DataPack(zipfile=dp)
-            clean_pack(data, opts)
-            ctx.data.merge(data)
+            ctx.require(weld.toolchain.main.subproject_config(weld.toolchain.main.PackType.DATA, dp))         
 
-
-def clean_pack(
-    pack: Union[DataPack, ResourcePack], opts: WeldDepsConfig
-):
-    if "pack.png" in pack.extra:
-        del pack.extra["pack.png"]
-    if (
-        isinstance(pack, DataPack)
-        and "load:load" in pack.function_tags
-        and opts.clean_load_tag
-    ):
-        del pack.function_tags["load:load"]
