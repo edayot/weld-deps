@@ -16,5 +16,5 @@ meta:
     deps:
 
       - id: "fluid_crafting"
-        match: ">2.1.0"
+        match: "1.6"
         source: "smithed"
