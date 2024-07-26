@@ -42,13 +42,15 @@ class WeldDepConfig(BaseModel):
         if self.source == Source.integrated:
             return
         elif self.source == Source.download:
+            dl = {}
+            if self.download_rp:
+                dl["resourcepack"] = self.download_rp
+            if self.download_dp:
+                dl["datapack"] = self.download_dp
             resolved_deps.append(WeldDep(
                 id=self.id,
                 name=self.version,
-                downloads={
-                    "resourcepack": self.download_rp,
-                    "datapack": self.download_dp
-                }
+                downloads=dl
             ))
             return
         url = f"https://api.smithed.dev/v2/packs/{self.id}"
