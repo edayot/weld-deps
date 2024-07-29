@@ -1,11 +1,11 @@
 # Weld deps
 
-> A datapack package manager using smithed & modrinth sources
+> A datapack package manager using smithed API
 
 
 ## Usage
 
-This is a [beet](https://mcbeet.dev/) plugin that manage smithed/modrinth dependencies.
+This is a [beet](https://mcbeet.dev/) plugin.
 
 It's placed in the require section of the beet config file. 
 
@@ -31,12 +31,7 @@ meta:
     include_prerelease: False
     deps:
       - id: "custom-block"
-        match: ">0.0.0"
-        source: "smithed"
+        version: "0.0.3"
       - id: "itemio"
-        match: ">0.9.0"
-        source: "smithed"
-      - id: "code-of-copper"
-        match: ">0.1.0"
-        source: "modrinth"
+        version: "0.9.0"
 ```
