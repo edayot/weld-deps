@@ -19,12 +19,13 @@ class Source(str, Enum):
     integrated = "integrated"
     smithed = "smithed"
     download = "download"
+    modrinth = "modrinth"
 
 class Downloads(TypedDict):
     resourcepack: NotRequired[str]
     datapack: NotRequired[str]
 
-class WeldDep(BaseModel):
+class ResolvedDep(BaseModel):
     id: str
     name: str
     downloads: Downloads
@@ -38,44 +39,46 @@ class WeldDep(BaseModel):
             dp = cache.download(url)
         return rp, dp
 
-class WeldDepOptions(BaseModel):
+class DepOptions(BaseModel):
     version: str
     source: Source = Source.smithed
     force_download_rp: Optional[str] = None
     force_download_dp: Optional[str] = None
 
 
-class WeldDepsConfig(BaseModel):
+class DepsConfig(BaseModel):
     enabled: bool = True
-    deps: dict[str, WeldDepOptions] = {}
+    deps: dict[str, DepOptions] = {}
 
-    def resolve_integrated(self, ctx: Context, resolved_deps : list[WeldDep], id: str, dep: WeldDepOptions):
-        return
-    def resolve_download(self, ctx: Context, resolved_deps : list[WeldDep], id: str, dep: WeldDepOptions):
-        dl: Downloads = {}
-        if dep.force_download_rp:
-            dl["resourcepack"] = dep.force_download_rp
-        if dep.force_download_dp:
-            dl["datapack"] = dep.force_download_dp
-        resolved_deps.append(WeldDep(
-            id=id,
-            name=dep.version,
-            downloads=dl
-        ))
-        return
-
-    
-    def resolve(self, ctx: Context, resolved_deps : list[WeldDep], id: str, dep: WeldDepOptions):
+    def resolve(self, ctx: Context, resolved_deps : list[ResolvedDep], id: str, dep: DepOptions):
         if dep.source == Source.integrated:
             return self.resolve_integrated(ctx, resolved_deps, id, dep)
         elif dep.source == Source.download:
             return self.resolve_download(ctx, resolved_deps, id, dep)
         elif dep.source == Source.smithed:
             return self.resolve_smithed(ctx, resolved_deps, id, dep)
+        elif dep.source == Source.modrinth:
+            return self.resolve_modrinth(ctx, resolved_deps, id, dep)
         else:
             raise ValueError(f"Unknown source {dep.source}")
-    
-    def resolve_smithed(self, ctx: Context, resolved_deps : list[WeldDep], id: str, dep: WeldDepOptions):
+
+
+    def resolve_integrated(self, ctx: Context, resolved_deps : list[ResolvedDep], id: str, dep: DepOptions):
+        return
+    def resolve_download(self, ctx: Context, resolved_deps : list[ResolvedDep], id: str, dep: DepOptions):
+        dl: Downloads = {}
+        if dep.force_download_rp:
+            dl["resourcepack"] = dep.force_download_rp
+        if dep.force_download_dp:
+            dl["datapack"] = dep.force_download_dp
+        resolved_deps.append(ResolvedDep(
+            id=id,
+            name=dep.version,
+            downloads=dl
+        ))
+        return
+
+    def resolve_smithed(self, ctx: Context, resolved_deps : list[ResolvedDep], id: str, dep: DepOptions):
         url = f"https://api.smithed.dev/v2/packs/{id}"
         cache = ctx.cache["weld_deps"]
         path = cache.get_path(url)
@@ -93,20 +96,57 @@ class WeldDepsConfig(BaseModel):
         if len(versions) == 0:
             raise PackVersionNotFoundError(f"Version {dep.version} of pack {id} not found")
         version = versions[0]
-        resolved_deps.append(WeldDep(
+        resolved_deps.append(ResolvedDep(
             id=data["id"],
             name=version["name"],
             downloads=Downloads(**version["downloads"])
         ))
         for self_deps in version.get("dependencies", []):
-            new_dep = WeldDepOptions(
+            new_dep = DepOptions(
                 version=self_deps["version"],
                 source=Source.smithed
             )
             self.resolve(ctx, resolved_deps, self_deps["id"], new_dep)
 
+    def resolve_modrinth(self, ctx: Context, resolved_deps : list[ResolvedDep], id: str, dep: DepOptions):
+        url = f"https://api.modrinth.com/v2/project/{id}/version"
+        cache = ctx.cache["weld_deps"]
+        try:
+            path = cache.download(url)
+        except requests.HTTPError as e:
+            raise PackNotFoundError(f"Pack {id} not found") from e
+        data = json.loads(path.read_text())
+        versions = filter(lambda x: x["version_number"] == dep.version, data)
+        versions = list(versions)
+        if len(versions) == 0:
+            raise PackVersionNotFoundError(f"Version {dep.version} of pack {id} not found")
+        version = versions[0]
+        is_datapack = "datapack" in version["loaders"]
+        is_resourcepack = "minecraft" in version["loaders"]
+        if is_datapack and is_resourcepack:
+            raise ValueError(f"Pack {id} is both a datapack and a resourcepack")
+        downloads : Downloads = {}
+        files = version["files"]
+        primary_files = [x for x in files if x["primary"]]
+        not_primary_files = [x for x in files if not x["primary"]]
+        if is_datapack:
+            assert len(primary_files) == 1
+            assert len(not_primary_files) == 0 or len(not_primary_files) == 1
+            downloads["datapack"] = primary_files[0]["url"]
+            if len(not_primary_files) == 1:
+                downloads["resourcepack"] = not_primary_files[0]["url"]
+        if is_resourcepack:
+            assert len(primary_files) == 1
+            assert len(not_primary_files) == 0
+            downloads["resourcepack"] = primary_files[0]["url"]
+        resolved_deps.append(ResolvedDep(
+            id=id,
+            name=dep.version,
+            downloads=downloads
+        ))
 
-def remove_duplicates(resolved_deps : list[WeldDep]):
+
+def remove_duplicates(resolved_deps : list[ResolvedDep]):
     new_deps = {}
     for dep in resolved_deps:
         if dep.id not in new_deps:
@@ -122,13 +162,13 @@ def remove_duplicates(resolved_deps : list[WeldDep]):
     
 
 
-@configurable("weld_deps", validator=WeldDepsConfig)
-def beet_default(ctx: Context, opts: WeldDepsConfig):
+@configurable("weld_deps", validator=DepsConfig)
+def beet_default(ctx: Context, opts: DepsConfig):
     if not opts.enabled:
         return
     weld.toolchain.main.weld(ctx)
     
-    resolved_deps : list[WeldDep] = []
+    resolved_deps : list[ResolvedDep] = []
     for id, dep in opts.deps.items():
         opts.resolve(ctx, resolved_deps, id, dep)
     resolved_deps = remove_duplicates(resolved_deps)

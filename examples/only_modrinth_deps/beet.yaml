@@ -1,0 +1,18 @@
+id: test
+require:
+  - weld_deps
+
+output: dist
+
+
+meta:
+  weld_deps:
+    enable_weld_merging: False
+    clean_load_tag: False
+    deps:
+      itemio:
+        version: "1.2.6"
+        source: "modrinth"
+      cauldron-concrete-powder:
+        version: "1.1.0"
+        source: "modrinth"
