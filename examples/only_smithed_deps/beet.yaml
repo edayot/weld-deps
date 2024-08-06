@@ -11,10 +11,7 @@ meta:
     enable_weld_merging: False
     clean_load_tag: False
     deps:
-
       - id: "smithed.crafter.dev"
         version: "0.4.0"
-        source: "smithed"
       - id: "itemio"
         version: "1.0.0"
-        source: "smithed"

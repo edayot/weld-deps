@@ -15,4 +15,3 @@ meta:
     deps:
       - id: "blablabla"
         version: "0.0.0"
-        source: "smithed"

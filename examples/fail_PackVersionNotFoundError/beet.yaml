@@ -15,4 +15,3 @@ meta:
     deps:
       - id: "itemio"
         version: "100.1.0"
-        source: "smithed"
