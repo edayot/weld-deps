@@ -1,0 +1,7 @@
+{
+  "values": [
+    "regex:load",
+    "bot:load",
+    "moxlib:load"
+  ]
+}
