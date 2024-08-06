@@ -38,7 +38,7 @@ class WeldDep(BaseModel):
             dp = cache.download(url)
         return rp, dp
 
-class WeldDepConfig(BaseModel):
+class WeldDepOptions(BaseModel):
     version: str
     source: Source = Source.smithed
     force_download_rp: Optional[str] = None
@@ -47,24 +47,35 @@ class WeldDepConfig(BaseModel):
 
 class WeldDepsConfig(BaseModel):
     enabled: bool = True
-    deps: dict[str, WeldDepConfig] = {}
+    deps: dict[str, WeldDepOptions] = {}
 
-    def resolve(self, ctx: Context, resolved_deps : list[WeldDep], id: str):
-        dep = self.deps[id]
+    def resolve_integrated(self, ctx: Context, resolved_deps : list[WeldDep], id: str, dep: WeldDepOptions):
+        return
+    def resolve_download(self, ctx: Context, resolved_deps : list[WeldDep], id: str, dep: WeldDepOptions):
+        dl: Downloads = {}
+        if dep.force_download_rp:
+            dl["resourcepack"] = dep.force_download_rp
+        if dep.force_download_dp:
+            dl["datapack"] = dep.force_download_dp
+        resolved_deps.append(WeldDep(
+            id=id,
+            name=dep.version,
+            downloads=dl
+        ))
+        return
+
+    
+    def resolve(self, ctx: Context, resolved_deps : list[WeldDep], id: str, dep: WeldDepOptions):
         if dep.source == Source.integrated:
-            return
+            return self.resolve_integrated(ctx, resolved_deps, id, dep)
         elif dep.source == Source.download:
-            dl : Downloads = {}
-            if dep.force_download_rp:
-                dl["resourcepack"] = dep.force_download_rp
-            if dep.force_download_dp:
-                dl["datapack"] = dep.force_download_dp
-            resolved_deps.append(WeldDep(
-                id=id,
-                name=dep.version,
-                downloads=dl
-            ))
-            return
+            return self.resolve_download(ctx, resolved_deps, id, dep)
+        elif dep.source == Source.smithed:
+            return self.resolve_smithed(ctx, resolved_deps, id, dep)
+        else:
+            raise ValueError(f"Unknown source {dep.source}")
+    
+    def resolve_smithed(self, ctx: Context, resolved_deps : list[WeldDep], id: str, dep: WeldDepOptions):
         url = f"https://api.smithed.dev/v2/packs/{id}"
         cache = ctx.cache["weld_deps"]
         path = cache.get_path(url)
@@ -87,13 +98,12 @@ class WeldDepsConfig(BaseModel):
             name=version["name"],
             downloads=Downloads(**version["downloads"])
         ))
-        for dep in version.get("dependencies", []):
-            new_dep = WeldDepConfig(
-                version=dep["version"],
+        for self_deps in version.get("dependencies", []):
+            new_dep = WeldDepOptions(
+                version=self_deps["version"],
                 source=Source.smithed
             )
-            self.deps[dep["id"]] = new_dep
-            self.resolve(ctx, resolved_deps, dep["id"])
+            self.resolve(ctx, resolved_deps, self_deps["id"], new_dep)
 
 
 def remove_duplicates(resolved_deps : list[WeldDep]):
@@ -119,8 +129,8 @@ def beet_default(ctx: Context, opts: WeldDepsConfig):
     weld.toolchain.main.weld(ctx)
     
     resolved_deps : list[WeldDep] = []
-    for dep in set(opts.deps.keys()):
-        opts.resolve(ctx, resolved_deps, dep)
+    for id, dep in opts.deps.items():
+        opts.resolve(ctx, resolved_deps, id, dep)
     resolved_deps = remove_duplicates(resolved_deps)
     resolved_deps.sort(key=lambda x: x.name)
     for dep in resolved_deps:
