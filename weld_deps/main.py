@@ -39,28 +39,33 @@ class WeldDep(BaseModel):
         return rp, dp
 
 class WeldDepConfig(BaseModel):
-    id: str
     version: str
     source: Source = Source.smithed
-    download_rp: Optional[str] = None
-    download_dp: Optional[str] = None
+    force_download_rp: Optional[str] = None
+    force_download_dp: Optional[str] = None
 
-    def resolve(self, ctx: Context, resolved_deps : list[WeldDep]):
-        if self.source == Source.integrated:
+
+class WeldDepsConfig(BaseModel):
+    enabled: bool = True
+    deps: dict[str, WeldDepConfig] = {}
+
+    def resolve(self, ctx: Context, resolved_deps : list[WeldDep], id: str):
+        dep = self.deps[id]
+        if dep.source == Source.integrated:
             return
-        elif self.source == Source.download:
-            dl = {}
-            if self.download_rp:
-                dl["resourcepack"] = self.download_rp
-            if self.download_dp:
-                dl["datapack"] = self.download_dp
+        elif dep.source == Source.download:
+            dl : Downloads = {}
+            if dep.force_download_rp:
+                dl["resourcepack"] = dep.force_download_rp
+            if dep.force_download_dp:
+                dl["datapack"] = dep.force_download_dp
             resolved_deps.append(WeldDep(
-                id=self.id,
-                name=self.version,
+                id=id,
+                name=dep.version,
                 downloads=dl
             ))
             return
-        url = f"https://api.smithed.dev/v2/packs/{self.id}"
+        url = f"https://api.smithed.dev/v2/packs/{id}"
         cache = ctx.cache["weld_deps"]
         path = cache.get_path(url)
         if not path.exists():
@@ -68,14 +73,14 @@ class WeldDepConfig(BaseModel):
             try:
                 response.raise_for_status()
             except requests.HTTPError as e:
-                raise PackNotFoundError(f"Pack {self.id} not found") from e
+                raise PackNotFoundError(f"Pack {id} not found") from e
             path.write_text(response.text)
         data = json.loads(path.read_text())
 
-        versions = filter(lambda x: x["name"] == self.version, data["versions"])
+        versions = filter(lambda x: x["name"] == dep.version, data["versions"])
         versions = list(versions)
         if len(versions) == 0:
-            raise PackVersionNotFoundError(f"Version {self.version} of pack {self.id} not found")
+            raise PackVersionNotFoundError(f"Version {dep.version} of pack {id} not found")
         version = versions[0]
         resolved_deps.append(WeldDep(
             id=data["id"],
@@ -83,16 +88,13 @@ class WeldDepConfig(BaseModel):
             downloads=Downloads(**version["downloads"])
         ))
         for dep in version.get("dependencies", []):
-            WeldDepConfig(
-                id=dep["id"],
+            new_dep = WeldDepConfig(
                 version=dep["version"],
                 source=Source.smithed
-            ).resolve(ctx, resolved_deps)        
+            )
+            self.deps[dep["id"]] = new_dep
+            self.resolve(ctx, resolved_deps, dep["id"])
 
-
-class WeldDepsConfig(BaseModel):
-    enabled: bool = True
-    deps: list[WeldDepConfig] = []
 
 def remove_duplicates(resolved_deps : list[WeldDep]):
     new_deps = {}
@@ -117,14 +119,14 @@ def beet_default(ctx: Context, opts: WeldDepsConfig):
     weld.toolchain.main.weld(ctx)
     
     resolved_deps : list[WeldDep] = []
-    for dep in opts.deps:
-        dep.resolve(ctx, resolved_deps)
+    for dep in set(opts.deps.keys()):
+        opts.resolve(ctx, resolved_deps, dep)
     resolved_deps = remove_duplicates(resolved_deps)
     resolved_deps.sort(key=lambda x: x.name)
     for dep in resolved_deps:
         rp, dp = dep.download(ctx)
         if rp:
-            ctx.require(weld.toolchain.main.subproject_config(weld.toolchain.main.PackType.ASSETS, rp))       
+            ctx.require(weld.toolchain.main.subproject_config(weld.toolchain.main.PackType.ASSETS, str(rp)))       
         if dp:
-            ctx.require(weld.toolchain.main.subproject_config(weld.toolchain.main.PackType.DATA, dp))         
+            ctx.require(weld.toolchain.main.subproject_config(weld.toolchain.main.PackType.DATA, str(dp)))         
 

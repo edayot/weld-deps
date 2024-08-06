@@ -13,5 +13,6 @@ meta:
     enable_weld_merging: False
     clean_load_tag: False
     deps:
-      - id: "itemio"
+      itemio:
         version: "100.1.0"
+        source: "smithed"
