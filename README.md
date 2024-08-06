@@ -16,22 +16,12 @@ id: test
 require:
   - weld_deps
 
-data_pack:
-  load: src
-
-pipeline:
-  - mecha
-
-output: dist
-
 meta:
   weld_deps:
-    enable_weld_merging: False
-    clean_load_tag: False
-    include_prerelease: False
     deps:
-      - id: "custom-block"
-        version: "0.0.3"
-      - id: "itemio"
-        version: "0.9.0"
+      smithed.crafter.dev:
+        version: "0.4.0"
+      itemio:
+        version: "1.0.0"
+
 ```
