@@ -1,0 +1,7 @@
+{
+  "values": [
+    "#smithed.crafter:load",
+    "#smithed.custom_block:load",
+    "#itemio:load"
+  ]
+}

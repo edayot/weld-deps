@@ -7,6 +7,13 @@ import json
 import requests
 import pathlib
 from smithed import weld
+import semver
+
+class PackNotFoundError(Exception):
+    pass
+
+class PackVersionNotFoundError(Exception):
+    pass
 
 class Source(str, Enum):
     integrated = "integrated"
@@ -61,14 +68,14 @@ class WeldDepConfig(BaseModel):
             try:
                 response.raise_for_status()
             except requests.HTTPError as e:
-                raise ValueError(f"Pack {self.id} not found") from e
+                raise PackNotFoundError(f"Pack {self.id} not found") from e
             path.write_text(response.text)
         data = json.loads(path.read_text())
 
         versions = filter(lambda x: x["name"] == self.version, data["versions"])
         versions = list(versions)
         if len(versions) == 0:
-            raise ValueError(f"Version {self.version} of pack {self.id} not found")
+            raise PackVersionNotFoundError(f"Version {self.version} of pack {self.id} not found")
         version = versions[0]
         resolved_deps.append(WeldDep(
             id=data["id"],
@@ -87,6 +94,21 @@ class WeldDepsConfig(BaseModel):
     enabled: bool = True
     deps: list[WeldDepConfig] = []
 
+def remove_duplicates(resolved_deps : list[WeldDep]):
+    new_deps = {}
+    for dep in resolved_deps:
+        if dep.id not in new_deps:
+            new_deps[dep.id] = dep
+        else:
+            version_a = new_deps[dep.id].name
+            version_b = dep.name
+            version_a = semver.VersionInfo.parse(version_a)
+            version_b = semver.VersionInfo.parse(version_b)
+            if version_a < version_b:
+                new_deps[dep.id] = dep
+    return list(new_deps.values())
+    
+
 
 @configurable("weld_deps", validator=WeldDepsConfig)
 def beet_default(ctx: Context, opts: WeldDepsConfig):
@@ -97,6 +119,8 @@ def beet_default(ctx: Context, opts: WeldDepsConfig):
     resolved_deps : list[WeldDep] = []
     for dep in opts.deps:
         dep.resolve(ctx, resolved_deps)
+    resolved_deps = remove_duplicates(resolved_deps)
+    resolved_deps.sort(key=lambda x: x.name)
     for dep in resolved_deps:
         rp, dp = dep.download(ctx)
         if rp:
