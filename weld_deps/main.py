@@ -118,7 +118,7 @@ class DepsConfig(BaseModel):
         data = json.loads(path.read_text())
         versions = filter(lambda x: x["version_number"] == dep.version, data)
         versions = list(versions)
-        if len(versions) == 0:
+        if len(versions) != 1:
             raise PackVersionNotFoundError(f"Version {dep.version} of pack {id} not found")
         version = versions[0]
         is_datapack = "datapack" in version["loaders"]
@@ -144,6 +144,28 @@ class DepsConfig(BaseModel):
             name=dep.version,
             downloads=downloads
         ))
+        for self_deps in version.get("dependencies", []):
+            if not self_deps["dependency_type"] == "required":
+                continue
+            self_url = f"https://api.modrinth.com/v2/project/{self_deps['project_id']}/version"
+            self_url_2 = f"https://api.modrinth.com/v2/project/{self_deps['project_id']}"
+            try:
+                self_path = cache.download(self_url)
+                self_path_2 = cache.download(self_url_2)
+            except requests.HTTPError as e:
+                raise PackNotFoundError(f"Pack {id} not found") from e
+            self_data = json.loads(self_path.read_text())
+            self_data_2 = json.loads(self_path_2.read_text())
+            self_versions = filter(lambda x: x["id"] == self_deps["version_id"], self_data)
+            self_versions = list(self_versions)
+            if len(self_versions) != 1:
+                raise PackVersionNotFoundError(f"Version {self_deps['version_id']} of pack {self_deps['project_id']} not found")
+            self_version = self_versions[0]
+            new_dep = DepOptions(
+                version=self_version["version_number"],
+                source=Source.modrinth
+            )
+            self.resolve(ctx, resolved_deps, self_data_2["slug"], new_dep)
 
 
 def remove_duplicates(resolved_deps : list[ResolvedDep]):

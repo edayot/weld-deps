@@ -8,8 +8,6 @@ data_pack:
 
 meta:
   weld_deps:
-    enable_weld_merging: False
-    clean_load_tag: False
     deps:
       smithed.crafter.dev:
         version: "0.4.0"

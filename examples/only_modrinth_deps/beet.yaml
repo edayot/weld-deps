@@ -7,8 +7,6 @@ output: dist
 
 meta:
   weld_deps:
-    enable_weld_merging: False
-    clean_load_tag: False
     deps:
       itemio:
         version: "1.2.6"
