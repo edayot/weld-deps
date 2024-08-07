@@ -2,6 +2,7 @@
 
 > A datapack package manager using smithed API
 
+PyPi: [https://pypi.org/project/weld-deps/](https://pypi.org/project/weld-deps/)
 
 ## Usage
 

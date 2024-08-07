@@ -4,6 +4,7 @@ version = "0.10.0"
 description = ""
 authors = ["edayot"]
 license = "mit"
+readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
