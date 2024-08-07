@@ -38,9 +38,7 @@ meta:
 meta:
   weld_deps:
     deps:
-      player_motion: 
-        version: "1.3.1"
-        source: "smithed"
+      player_motion: "1.3.1"
       code-of-copper:
         version: "0.3.0"
         source: "modrinth"
