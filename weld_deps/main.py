@@ -1,7 +1,7 @@
 from beet import Context, configurable, DataPack, ResourcePack
 from pprint import pprint
 from pydantic import BaseModel
-from typing_extensions import TypedDict, NotRequired, Union, Optional
+from typing_extensions import TypedDict, NotRequired, Union, Optional, Generator
 from enum import Enum
 import json
 import requests
@@ -44,20 +44,37 @@ class SmartVersionOpts(BaseModel):
     source: Optional[Source] = None
     download: Optional[Downloads] = None
 
+class SmartDepOpts(SmartVersionOpts):
+    id: str
+
 
 VersionOpts = Union[SmartVersionOpts, str]
+DepSource = Union[dict[str, VersionOpts], list[SmartDepOpts]]
 
 class DepsConfig(BaseModel):
     enabled: bool = True
     default_source: Source = Source.smithed
-    deps: dict[str, VersionOpts] = {}
+    deps: DepSource = {}
 
-    def resolve(self, ctx: Context, resolved_deps : list[ResolvedDep], id: str, dep: VersionOpts):
-        if isinstance(dep, str):
-            dep = SmartVersionOpts(
-                version=dep,
-                source=self.default_source
-            )
+    def deps_dict(self) -> Generator[tuple[str, SmartVersionOpts], None, None]:
+        if isinstance(self.deps, dict):
+            for k, v in self.deps.items():
+                if isinstance(v, str):
+                    yield k, SmartVersionOpts(version=v, source=self.default_source)
+                elif isinstance(v, SmartVersionOpts):
+                    yield k, v
+                else:
+                    raise ValueError(f"Invalid dependency {k}: {v}")
+        elif isinstance(self.deps, list):
+            for v in self.deps:
+                if isinstance(v, SmartDepOpts):
+                    yield v.id, v
+                else:
+                    raise ValueError(f"Invalid dependency {v}")
+        else:
+            raise ValueError(f"Invalid deps {self.deps}")
+
+    def resolve(self, ctx: Context, resolved_deps : list[ResolvedDep], id: str, dep: SmartVersionOpts):
         if dep.source is None:
             dep.source = self.default_source
         if dep.source == Source.integrated:
@@ -198,7 +215,7 @@ def beet_default(ctx: Context, opts: DepsConfig):
     weld.toolchain.main.weld(ctx)
     
     resolved_deps : list[ResolvedDep] = []
-    for id, dep in opts.deps.items():
+    for id, dep in opts.deps_dict():
         opts.resolve(ctx, resolved_deps, id, dep)
     resolved_deps = remove_duplicates(resolved_deps)
     resolved_deps.sort(key=lambda x: x.name)
