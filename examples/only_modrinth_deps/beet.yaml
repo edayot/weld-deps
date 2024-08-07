@@ -7,10 +7,10 @@ output: dist
 
 meta:
   weld_deps:
+    default_source: "modrinth"
     deps:
       itemio:
         version: "1.2.6"
-        source: "modrinth"
       cauldron-concrete-powder:
         version: "1.1.0"
         source: "modrinth"

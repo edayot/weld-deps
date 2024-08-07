@@ -8,8 +8,8 @@ data_pack:
 
 meta:
   weld_deps:
+    default_source: "smithed" # This is not needed, smithed is the default for default_source
     deps:
       smithed.crafter.dev:
         version: "0.4.0"
-      itemio:
-        version: "1.0.0"
+      itemio: "1.0.0"

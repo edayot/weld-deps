@@ -41,18 +41,27 @@ class ResolvedDep(BaseModel):
 
 class DepOptions(BaseModel):
     version: str
-    source: Source = Source.smithed
-    force_download_rp: Optional[str] = None
-    force_download_dp: Optional[str] = None
+    source: Optional[Source] = None
+    download: Optional[Downloads] = None
 
+
+VersionOpts = Union[DepOptions, str]
 
 class DepsConfig(BaseModel):
     enabled: bool = True
-    deps: dict[str, DepOptions] = {}
+    default_source: Source = Source.smithed
+    deps: dict[str, VersionOpts] = {}
 
-    def resolve(self, ctx: Context, resolved_deps : list[ResolvedDep], id: str, dep: DepOptions):
+    def resolve(self, ctx: Context, resolved_deps : list[ResolvedDep], id: str, dep: VersionOpts):
+        if isinstance(dep, str):
+            dep = DepOptions(
+                version=dep,
+                source=self.default_source
+            )
+        if dep.source is None:
+            dep.source = self.default_source
         if dep.source == Source.integrated:
-            return self.resolve_integrated(ctx, resolved_deps, id, dep)
+            return
         elif dep.source == Source.download:
             return self.resolve_download(ctx, resolved_deps, id, dep)
         elif dep.source == Source.smithed:
@@ -61,20 +70,14 @@ class DepsConfig(BaseModel):
             return self.resolve_modrinth(ctx, resolved_deps, id, dep)
         else:
             raise ValueError(f"Unknown source {dep.source}")
-
-
-    def resolve_integrated(self, ctx: Context, resolved_deps : list[ResolvedDep], id: str, dep: DepOptions):
-        return
+    
     def resolve_download(self, ctx: Context, resolved_deps : list[ResolvedDep], id: str, dep: DepOptions):
-        dl: Downloads = {}
-        if dep.force_download_rp:
-            dl["resourcepack"] = dep.force_download_rp
-        if dep.force_download_dp:
-            dl["datapack"] = dep.force_download_dp
+        if not dep.download:
+            raise ValueError(f"Download source {dep.source} requires a download url")
         resolved_deps.append(ResolvedDep(
             id=id,
             name=dep.version,
-            downloads=dl
+            downloads=dep.download
         ))
         return
 
