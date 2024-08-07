@@ -1,0 +1,3 @@
+$execute if entity @s[tag=itemio.container.nbt_items.on_passengers] on passengers store result $(nbt_items_path)[{Slot:$(Slot)b}].count int 1 run scoreboard players get #new_count_container itemio.math.input
+$execute if entity @s[tag=itemio.container.nbt_items.on_vehicle] on vehicle store result $(nbt_items_path)[{Slot:$(Slot)b}].count int 1 run scoreboard players get #new_count_container itemio.math.input
+$execute if entity @s[tag=!itemio.container.nbt_items.on_vehicle,tag=!itemio.container.nbt_items.on_passengers] store result $(nbt_items_path)[{Slot:$(Slot)b}].count int 1 run scoreboard players get #new_count_container itemio.math.input

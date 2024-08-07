@@ -1,0 +1,21 @@
+id: test
+require:
+  - weld_deps
+
+data_pack:
+  load: src
+
+
+meta:
+  weld_deps:
+    deps:
+      player_motion: 
+        version: "1.3.1" # Since only the greatest version is used, it can be useful
+        source: "download"
+        download:
+          datapack: "https://github.com/MulverineX/player_motion/releases/download/v1.3.1/player_motion.zip"
+      itemio:
+        version: "0.3.0" # Since only the greatest version is used, it can be useful
+        source: "download"
+        download:
+          datapack: "https://github.com/edayot/ItemIO/releases/download/v1.2.6/ItemIO-v1.2.6-Datapack.zip"

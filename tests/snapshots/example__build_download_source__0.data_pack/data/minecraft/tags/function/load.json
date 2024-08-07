@@ -1,0 +1,6 @@
+{
+  "values": [
+    "#load:_private/load",
+    "player_motion:internal/technical/load"
+  ]
+}
