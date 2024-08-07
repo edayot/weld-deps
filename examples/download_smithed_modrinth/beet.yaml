@@ -1,0 +1,23 @@
+id: test
+require:
+  - weld_deps
+
+data_pack:
+  load: src
+
+
+meta:
+  weld_deps:
+    deps:
+      # Here, only the greatest version is going to be in the context
+      - id: itemio
+        version: "1.2.6"
+        source: "download"
+        download:
+          datapack: "https://github.com/edayot/ItemIO/releases/download/v1.2.6/ItemIO-v1.2.6-Datapack.zip"
+      - id: itemio
+        version: "1.2.5"
+        source: "smithed"
+      - id: itemio
+        version: "1.2.4"
+        source: "modrinth"
