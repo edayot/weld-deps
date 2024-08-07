@@ -1,0 +1,8 @@
+{
+  "values": [
+    "regex:load",
+    "bot:load",
+    "moxlib:load",
+    "player_motion:internal/technical/load"
+  ]
+}

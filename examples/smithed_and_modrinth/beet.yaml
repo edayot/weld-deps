@@ -1,0 +1,16 @@
+id: test
+require:
+  - weld_deps
+
+data_pack:
+  load: src
+
+
+meta:
+  weld_deps:
+    default_source: "modrinth"
+    deps:
+      smithed.crafter.dev:
+        version: "0.4.0"
+        source: "smithed"
+      itemio: "1.2.6"
