@@ -39,13 +39,13 @@ class ResolvedDep(BaseModel):
             dp = cache.download(url)
         return rp, dp
 
-class DepOptions(BaseModel):
+class SmartVersionOpts(BaseModel):
     version: str
     source: Optional[Source] = None
     download: Optional[Downloads] = None
 
 
-VersionOpts = Union[DepOptions, str]
+VersionOpts = Union[SmartVersionOpts, str]
 
 class DepsConfig(BaseModel):
     enabled: bool = True
@@ -54,7 +54,7 @@ class DepsConfig(BaseModel):
 
     def resolve(self, ctx: Context, resolved_deps : list[ResolvedDep], id: str, dep: VersionOpts):
         if isinstance(dep, str):
-            dep = DepOptions(
+            dep = SmartVersionOpts(
                 version=dep,
                 source=self.default_source
             )
@@ -71,7 +71,7 @@ class DepsConfig(BaseModel):
         else:
             raise ValueError(f"Unknown source {dep.source}")
     
-    def resolve_download(self, ctx: Context, resolved_deps : list[ResolvedDep], id: str, dep: DepOptions):
+    def resolve_download(self, ctx: Context, resolved_deps : list[ResolvedDep], id: str, dep: SmartVersionOpts):
         if not dep.download:
             raise ValueError(f"Download source {dep.source} requires a download url")
         resolved_deps.append(ResolvedDep(
@@ -81,7 +81,7 @@ class DepsConfig(BaseModel):
         ))
         return
 
-    def resolve_smithed(self, ctx: Context, resolved_deps : list[ResolvedDep], id: str, dep: DepOptions):
+    def resolve_smithed(self, ctx: Context, resolved_deps : list[ResolvedDep], id: str, dep: SmartVersionOpts):
         url = f"https://api.smithed.dev/v2/packs/{id}"
         cache = ctx.cache["weld_deps"]
         path = cache.get_path(url)
@@ -105,13 +105,13 @@ class DepsConfig(BaseModel):
             downloads=Downloads(**version["downloads"])
         ))
         for self_deps in version.get("dependencies", []):
-            new_dep = DepOptions(
+            new_dep = SmartVersionOpts(
                 version=self_deps["version"],
                 source=Source.smithed
             )
             self.resolve(ctx, resolved_deps, self_deps["id"], new_dep)
 
-    def resolve_modrinth(self, ctx: Context, resolved_deps : list[ResolvedDep], id: str, dep: DepOptions):
+    def resolve_modrinth(self, ctx: Context, resolved_deps : list[ResolvedDep], id: str, dep: SmartVersionOpts):
         url = f"https://api.modrinth.com/v2/project/{id}/version"
         cache = ctx.cache["weld_deps"]
         try:
@@ -164,7 +164,7 @@ class DepsConfig(BaseModel):
             if len(self_versions) != 1:
                 raise PackVersionNotFoundError(f"Version {self_deps['version_id']} of pack {self_deps['project_id']} not found")
             self_version = self_versions[0]
-            new_dep = DepOptions(
+            new_dep = SmartVersionOpts(
                 version=self_version["version_number"],
                 source=Source.modrinth
             )
@@ -173,17 +173,21 @@ class DepsConfig(BaseModel):
 
 def remove_duplicates(resolved_deps : list[ResolvedDep]):
     new_deps = {}
+    keep_two = []
     for dep in resolved_deps:
         if dep.id not in new_deps:
             new_deps[dep.id] = dep
         else:
-            version_a = new_deps[dep.id].name
-            version_b = dep.name
-            version_a = semver.VersionInfo.parse(version_a)
-            version_b = semver.VersionInfo.parse(version_b)
-            if version_a < version_b:
-                new_deps[dep.id] = dep
-    return list(new_deps.values())
+            try:
+                version_a = new_deps[dep.id].name
+                version_b = dep.name
+                version_a = semver.VersionInfo.parse(version_a)
+                version_b = semver.VersionInfo.parse(version_b)
+                if version_a < version_b:
+                    new_deps[dep.id] = dep
+            except ValueError as e:
+                keep_two.append(dep)
+    return list(new_deps.values()) + keep_two
     
 
 
