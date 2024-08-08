@@ -1,18 +1,36 @@
 import os
 
 import pytest
-from pytest_insta import SnapshotFixture
+from pytest_insta import SnapshotFixture, Fmt
 from beet import run_beet, PluginError, ProjectConfig, DataPack, ResourcePack, Pack, NamespaceFile
+from beet.library.test_utils import ignore_name
+from pathlib import Path
+from typing import List, Type
 
 from weld_deps.main import PackNotFoundError, PackVersionNotFoundError
 
 EXAMPLES = [f for f in os.listdir("examples") if not f.startswith("nosnap_")]
 
 
-def remove_not_vanilla_namespacefile(pack: Pack):
-    for namespace in pack.extend_namespace:
-        for path in set(pack[namespace].keys()):
-            del pack[namespace][path]
+
+def create_fmt(data_namespace: List[Type[NamespaceFile]], assets_namespace: List[Type[NamespaceFile]]):
+    class FmtResourcePack(Fmt[ResourcePack]):
+        extension = ".resource_pack"
+
+        def load(self, path: Path) -> ResourcePack:
+            return ignore_name(ResourcePack(path=path, extend_namespace=assets_namespace))
+
+        def dump(self, path: Path, value: ResourcePack):
+            value.save(path=path, overwrite=True)
+
+    class FmtDataPack(Fmt[DataPack]):
+        extension = ".data_pack"
+
+        def load(self, path: Path) -> DataPack:
+            return ignore_name(DataPack(path=path, extend_namespace=data_namespace))
+
+        def dump(self, path: Path, value: DataPack):
+            value.save(path=path, overwrite=True)
 
 
 @pytest.mark.parametrize("directory", EXAMPLES)
@@ -40,10 +58,9 @@ def test_build(snapshot: SnapshotFixture, directory: str):
             
     else:
         with run_beet(directory=f"examples/{directory}") as ctx:
+            create_fmt(ctx.data.extend_namespace, ctx.assets.extend_namespace)
             data_pack = snapshot("data_pack")
             resource_pack = snapshot("resource_pack")
-            remove_not_vanilla_namespacefile(ctx.data)
-            remove_not_vanilla_namespacefile(ctx.assets)
 
             assert data_pack == ctx.data
             assert resource_pack == ctx.assets
