@@ -20,6 +20,7 @@ class Source(str, Enum):
     smithed = "smithed"
     download = "download"
     modrinth = "modrinth"
+    local = "local"
 
 class Downloads(TypedDict):
     resourcepack: NotRequired[str]
@@ -29,8 +30,11 @@ class ResolvedDep(BaseModel):
     id: str
     name: str
     downloads: Downloads
+    source: Source
 
-    def download(self, ctx: Context) -> tuple[pathlib.Path | None, pathlib.Path | None]:
+    def download(self, ctx: Context) -> tuple[pathlib.Path | str | None, pathlib.Path | str | None]:
+        if self.source == Source.local:
+            return self.downloads.get("resourcepack"), self.downloads.get("datapack")
         cache = ctx.cache["weld_deps"]
         rp, dp = None, None
         if url := self.downloads.get("resourcepack"):
@@ -43,6 +47,7 @@ class SmartVersionOpts(BaseModel):
     version: str
     source: Optional[Source] = None
     download: Optional[Downloads] = None
+    local: Optional[Downloads] = None
 
 class SmartDepOpts(SmartVersionOpts):
     id: str
@@ -85,6 +90,14 @@ class DepsConfig(BaseModel):
             return self.resolve_smithed(ctx, resolved_deps, id, dep)
         elif dep.source == Source.modrinth:
             return self.resolve_modrinth(ctx, resolved_deps, id, dep)
+        elif dep.source == Source.local:
+            assert dep.local, "Local source requires a local path parameter"
+            return resolved_deps.append(ResolvedDep(
+                id=id,
+                name=dep.version,
+                downloads=dep.local,
+                source=Source.local
+            ))
         else:
             raise ValueError(f"Unknown source {dep.source}")
     
@@ -94,7 +107,8 @@ class DepsConfig(BaseModel):
         resolved_deps.append(ResolvedDep(
             id=id,
             name=dep.version,
-            downloads=dep.download
+            downloads=dep.download,
+            source=Source.download
         ))
         return
 
@@ -119,7 +133,8 @@ class DepsConfig(BaseModel):
         resolved_deps.append(ResolvedDep(
             id=data["id"],
             name=version["name"],
-            downloads=Downloads(**version["downloads"])
+            downloads=Downloads(**version["downloads"]),
+            source=Source.smithed
         ))
         for self_deps in version.get("dependencies", []):
             new_dep = SmartVersionOpts(
@@ -162,7 +177,8 @@ class DepsConfig(BaseModel):
         resolved_deps.append(ResolvedDep(
             id=id,
             name=dep.version,
-            downloads=downloads
+            downloads=downloads,
+            source=Source.modrinth
         ))
         for self_deps in version.get("dependencies", []):
             if not self_deps["dependency_type"] == "required":
