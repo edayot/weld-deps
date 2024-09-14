@@ -8,6 +8,7 @@ import requests
 import pathlib
 from smithed import weld
 import semver
+import subprocess
 
 class PackNotFoundError(Exception):
     pass
@@ -21,6 +22,7 @@ class Source(str, Enum):
     download = "download"
     modrinth = "modrinth"
     local = "local"
+    git = "git"
 
 class Downloads(TypedDict):
     resourcepack: NotRequired[str]
@@ -33,6 +35,15 @@ class ResolvedDep(BaseModel):
     source: Source
 
     def download(self, ctx: Context) -> tuple[pathlib.Path | str | None, pathlib.Path | str | None]:
+        if self.source == Source.git:
+            git_url = str(self.downloads.get("datapack"))
+            cache = ctx.cache["weld_deps"]
+            clone_path = cache.get_path(git_url)
+            if not clone_path.exists():
+                subprocess.run(["git", "clone", git_url, clone_path], check=True)
+            return clone_path, clone_path
+            
+            return None, None
         if self.source == Source.local:
             return self.downloads.get("resourcepack"), self.downloads.get("datapack")
         cache = ctx.cache["weld_deps"]
@@ -48,6 +59,7 @@ class SmartVersionOpts(BaseModel):
     source: Optional[Source] = None
     download: Optional[Downloads] = None
     local: Optional[Downloads] = None
+    git: Optional[str] = None
 
 class SmartDepOpts(SmartVersionOpts):
     id: str
@@ -99,9 +111,27 @@ class DepsConfig(BaseModel):
                 downloads=dep.local,
                 source=Source.local
             ))
+        elif dep.source == Source.git:
+            assert dep.git, "Git source requires a git url parameter"
+            return self.resolve_git(ctx, resolved_deps, id, dep)
         else:
             raise ValueError(f"Unknown source {dep.source}")
     
+    def resolve_git(self, ctx: Context, resolved_deps : list[ResolvedDep], id: str, dep: SmartVersionOpts):
+        # clone the repo
+        assert dep.git, "Git source requires a git url parameter"
+        resolved_deps.append(ResolvedDep(
+            id=id,
+            name=dep.version,
+            downloads=Downloads(
+                datapack=dep.git,
+
+            ),
+            source=Source.git
+        ))
+
+        
+
     def resolve_download(self, ctx: Context, resolved_deps : list[ResolvedDep], id: str, dep: SmartVersionOpts):
         if not dep.download:
             raise ValueError(f"Download source {dep.source} requires a download url")

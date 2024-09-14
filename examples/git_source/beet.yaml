@@ -1,0 +1,14 @@
+id: test
+require:
+  - weld_deps
+
+output: dist
+
+
+meta:
+  weld_deps:
+    deps:
+      simple_beet_project:
+        version: "1.0.0"
+        source: "git"
+        git: "https://github.com/edayot/simple_beet_project.git"
