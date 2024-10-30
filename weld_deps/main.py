@@ -64,6 +64,7 @@ DepSource = Union[dict[str, VersionOpts], list[SmartDepOpts]]
 class DepsConfig(BaseModel):
     enabled: bool = True
     default_source: Source = Source.smithed
+    merge_after: Optional[bool] = None
     deps: DepSource = {}
 
     def deps_dict(self) -> Generator[tuple[str, SmartVersionOpts], None, None]:
@@ -241,7 +242,7 @@ def beet_default(ctx: Context, max_retries: int = 1):
     
 
 @configurable("weld_deps", validator=DepsConfig)
-def internal_plugin(ctx: Context, opts: DepsConfig):
+def internal_plugin(ctx: Context, opts: DepsConfig) -> Generator[None, None, None]:
     if not opts.enabled:
         return
     weld.toolchain.main.weld(ctx)
@@ -252,6 +253,10 @@ def internal_plugin(ctx: Context, opts: DepsConfig):
         opts.resolve(ctx, resolved_deps, id, dep)
     resolved_deps = remove_duplicates(resolved_deps)
     resolved_deps.sort(key=lambda x: x.name)
+
+    if opts.merge_after:
+        yield
+    # actual pack downloading + merging
     for dep in resolved_deps:
         rp, dp = dep.download(ctx)
         if rp:
