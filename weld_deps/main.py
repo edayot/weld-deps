@@ -9,10 +9,15 @@ import pathlib
 from smithed import weld
 import semver
 
-class PackNotFoundError(Exception):
+
+class WeldDepsError(Exception):
     pass
 
-class PackVersionNotFoundError(Exception):
+
+class PackNotFoundError(WeldDepsError):
+    pass
+
+class PackVersionNotFoundError(WeldDepsError):
     pass
 
 class Source(str, Enum):
@@ -224,11 +229,23 @@ def remove_duplicates(resolved_deps : list[ResolvedDep]):
     
 
 
+def beet_default(ctx: Context, max_retries: int = 1):
+    try:
+        internal_plugin(ctx)
+    except WeldDepsError as e:
+        if max_retries > 0:
+            ctx.cache["weld_deps"].clear()
+            beet_default(ctx, max_retries=max_retries-1)
+        else:
+            raise e
+    
+
 @configurable("weld_deps", validator=DepsConfig)
-def beet_default(ctx: Context, opts: DepsConfig):
+def internal_plugin(ctx: Context, opts: DepsConfig):
     if not opts.enabled:
         return
     weld.toolchain.main.weld(ctx)
+    ctx.cache["weld_deps"].timeout(days=30)
     
     resolved_deps : list[ResolvedDep] = []
     for id, dep in opts.deps_dict():
