@@ -230,13 +230,13 @@ def remove_duplicates(resolved_deps : list[ResolvedDep]):
     
 
 
-def beet_default(ctx: Context, max_retries: int = 1):
+def beet_default(ctx: Context, max_retries: int = 1) -> Generator[None, None, None]:
     try:
-        internal_plugin(ctx)
+        yield from internal_plugin(ctx)
     except WeldDepsError as e:
         if max_retries > 0:
             ctx.cache["weld_deps"].clear()
-            beet_default(ctx, max_retries=max_retries-1)
+            yield from beet_default(ctx, max_retries=max_retries-1)
         else:
             raise e
     
