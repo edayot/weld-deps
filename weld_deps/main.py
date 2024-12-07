@@ -119,7 +119,8 @@ class DepsConfig(BaseModel):
         return
 
     def resolve_smithed(self, ctx: Context, resolved_deps : list[ResolvedDep], id: str, dep: SmartVersionOpts):
-        url = f"https://api.smithed.dev/v2/packs/{id}"
+        id_url = id.split(":")[-1] if ":" in id else id
+        url = f"https://api.smithed.dev/v2/packs/{id_url}"
         cache = ctx.cache["weld_deps"]
         path = cache.get_path(url)
         if not path.exists():
