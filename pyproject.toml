@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "weld-deps"
-version = "0.14.0"
+version = "0.14.1"
 description = ""
 authors = ["edayot"]
 license = "mit"
