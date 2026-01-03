@@ -6,7 +6,6 @@ from enum import Enum
 import json
 import requests
 import pathlib
-from smithed import weld
 import semver
 
 
@@ -66,6 +65,7 @@ class DepsConfig(BaseModel):
     default_source: Source = Source.smithed
     merge_after: Optional[bool] = None
     deps: DepSource = {}
+    merge_with_weld: bool = True
 
     def deps_dict(self) -> Generator[tuple[str, SmartVersionOpts], None, None]:
         if isinstance(self.deps, dict):
@@ -231,13 +231,13 @@ def remove_duplicates(resolved_deps : list[ResolvedDep]):
     
 
 
-def beet_default(ctx: Context, max_retries: int = 1) -> Generator[None, None, None]:
+def beet_default(ctx: Context, max_retries: int = 1):
     try:
-        yield from internal_plugin(ctx)
+        ctx.require(internal_plugin)
     except WeldDepsError as e:
         if max_retries > 0:
             ctx.cache["weld_deps"].clear()
-            yield from beet_default(ctx, max_retries=max_retries-1)
+            ctx.require(lambda c: beet_default(c, max_retries - 1))
         else:
             raise e
     
@@ -246,7 +246,12 @@ def beet_default(ctx: Context, max_retries: int = 1) -> Generator[None, None, No
 def internal_plugin(ctx: Context, opts: DepsConfig) -> Generator[None, None, None]:
     if not opts.enabled:
         return
-    weld.toolchain.main.weld(ctx)
+    if opts.merge_with_weld:
+        try:
+            from smithed import weld
+        except ImportError as e:
+            raise ImportError("smithed-python is required for merge_with_weld option") from e
+        weld.toolchain.main.weld(ctx)
     ctx.cache["weld_deps"].timeout(days=30)
     
     resolved_deps : list[ResolvedDep] = []
@@ -261,7 +266,13 @@ def internal_plugin(ctx: Context, opts: DepsConfig) -> Generator[None, None, Non
     for dep in resolved_deps:
         rp, dp = dep.download(ctx)
         if rp:
-            ctx.require(weld.toolchain.main.subproject_config(weld.toolchain.main.PackType.ASSETS, str(rp)))       
+            if opts.merge_with_weld:
+                ctx.require(weld.toolchain.main.subproject_config(weld.toolchain.main.PackType.ASSETS, str(rp)))
+            else:
+                ctx.assets.merge(ResourcePack(str(rp)))
         if dp:
-            ctx.require(weld.toolchain.main.subproject_config(weld.toolchain.main.PackType.DATA, str(dp)))         
-
+            if opts.merge_with_weld:
+                ctx.require(weld.toolchain.main.subproject_config(weld.toolchain.main.PackType.DATA, str(dp)))
+            else:
+                ctx.data.merge(DataPack(str(dp)))
+                
