@@ -1,6 +1,6 @@
 [project]
 name = "weld-deps"
-version = "0.15.1"
+version = "0.15.2"
 description = ""
 readme = "README.md"
 requires-python = ">=3.14"
