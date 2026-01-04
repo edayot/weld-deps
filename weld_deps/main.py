@@ -48,7 +48,7 @@ class ResolvedDep(BaseModel):
         return rp, dp
 
 class SmartVersionOpts(BaseModel):
-    version: str = Field(validation_alias=AliasChoices("version_", "match", "match_"))
+    version: str = Field(validation_alias=AliasChoices("version", "version_"))
     source: Optional[Source] = None
     download: Optional[Downloads] = None
     local: Optional[Downloads] = None
