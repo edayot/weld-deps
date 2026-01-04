@@ -1,6 +1,6 @@
 from beet import Context, configurable, DataPack, ResourcePack
 from pprint import pprint
-from pydantic import AliasPath, BaseModel, Field
+from pydantic import AliasChoices, BaseModel, Field
 from typing_extensions import TypedDict, NotRequired, Union, Optional, Generator
 from enum import Enum
 import json
@@ -48,7 +48,7 @@ class ResolvedDep(BaseModel):
         return rp, dp
 
 class SmartVersionOpts(BaseModel):
-    version: str = Field(validation_alias=AliasPath("version_", "match", "match_"))
+    version: str = Field(validation_alias=AliasChoices("version_", "match", "match_"))
     source: Optional[Source] = None
     download: Optional[Downloads] = None
     local: Optional[Downloads] = None
@@ -267,11 +267,13 @@ def internal_plugin(ctx: Context, opts: DepsConfig) -> Generator[None, None, Non
         rp, dp = dep.download(ctx)
         if rp:
             if opts.merge_with_weld:
+                from smithed import weld
                 ctx.require(weld.toolchain.main.subproject_config(weld.toolchain.main.PackType.ASSETS, str(rp)))
             else:
                 ctx.assets.merge(ResourcePack(name=f"weld_dep_{dep.id}", path=str(rp)))
         if dp:
             if opts.merge_with_weld:
+                from smithed import weld
                 ctx.require(weld.toolchain.main.subproject_config(weld.toolchain.main.PackType.DATA, str(dp)))
             else:
                 ctx.data.merge(DataPack(name=f"weld_dep_{dep.id}", path=str(dp)))
