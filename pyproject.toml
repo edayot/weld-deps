@@ -1,31 +1,35 @@
-[tool.poetry]
+[project]
 name = "weld-deps"
 version = "0.15.0"
 description = ""
-authors = ["edayot"]
-license = "mit"
 readme = "README.md"
+requires-python = ">=3.14"
+license = "MIT"
+authors = [
+    { name = "edayot" },
+]
 
-[tool.poetry.dependencies]
-python = "^3.11"
-smithed = {version = ">=0.16.0", optional = true}
-beet=">=0.104.1"
-requests = "^2.31.0"
-semver = "^3.0.2"
+dependencies = [
+    "beet>=0.113.0b10",
+    "requests>=2.31.0",
+    "semver>=3.0.2",
+]
 
-[tool.poetry.extras]
-smithed = ["smithed"]
+[project.optional-dependencies]
+smithed = [
+    "smithed>=0.16.0",
+]
 
-[tool.poetry.dev-dependencies]
-black = "^24.4.2"
-pytest-insta = "^0.3.0"
-pytest-cov = "^6.0.0"
-
-
+[dependency-groups]
+dev = [
+    "black>=24.4.2",
+    "pytest-insta>=0.3.0",
+    "pytest-cov>=6.0.0",
+]
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [tool.pyright]
 typeCheckingMode = "basic"
