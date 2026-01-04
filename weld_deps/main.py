@@ -269,10 +269,10 @@ def internal_plugin(ctx: Context, opts: DepsConfig) -> Generator[None, None, Non
             if opts.merge_with_weld:
                 ctx.require(weld.toolchain.main.subproject_config(weld.toolchain.main.PackType.ASSETS, str(rp)))
             else:
-                ctx.assets.merge(ResourcePack(str(rp)))
+                ctx.assets.merge(ResourcePack(name=f"weld_dep_{dep.id}", path=str(rp)))
         if dp:
             if opts.merge_with_weld:
                 ctx.require(weld.toolchain.main.subproject_config(weld.toolchain.main.PackType.DATA, str(dp)))
             else:
-                ctx.data.merge(DataPack(str(dp)))
+                ctx.data.merge(DataPack(name=f"weld_dep_{dep.id}", path=str(dp)))
                 
