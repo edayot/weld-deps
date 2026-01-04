@@ -1,6 +1,6 @@
 from beet import Context, configurable, DataPack, ResourcePack
 from pprint import pprint
-from pydantic import BaseModel
+from pydantic import AliasPath, BaseModel, Field
 from typing_extensions import TypedDict, NotRequired, Union, Optional, Generator
 from enum import Enum
 import json
@@ -48,7 +48,7 @@ class ResolvedDep(BaseModel):
         return rp, dp
 
 class SmartVersionOpts(BaseModel):
-    version: str
+    version: str = Field(validation_alias=AliasPath("version_", "match", "match_"))
     source: Optional[Source] = None
     download: Optional[Downloads] = None
     local: Optional[Downloads] = None
