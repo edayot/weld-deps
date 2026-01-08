@@ -18,6 +18,8 @@ dependencies = [
 [project.optional-dependencies]
 smithed = [
     "smithed>=0.16.0",
+    "mecha>=0.102.0b2",
+    "bolt>=0.50.0b5",
 ]
 
 [dependency-groups]

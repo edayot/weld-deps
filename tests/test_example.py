@@ -2,7 +2,15 @@ import os
 
 import pytest
 from pytest_insta import SnapshotFixture, Fmt
-from beet import run_beet, PluginError, ProjectConfig, DataPack, ResourcePack, Pack, NamespaceFile
+from beet import (
+    run_beet,
+    PluginError,
+    ProjectConfig,
+    DataPack,
+    ResourcePack,
+    Pack,
+    NamespaceFile,
+)
 from beet.library.test_utils import ignore_name
 from pathlib import Path
 from typing import List, Type
@@ -12,13 +20,17 @@ from weld_deps.main import PackNotFoundError, PackVersionNotFoundError
 EXAMPLES = [f for f in os.listdir("examples") if not f.startswith("nosnap_")]
 
 
-
-def create_fmt(data_namespace: List[Type[NamespaceFile]], assets_namespace: List[Type[NamespaceFile]]):
+def create_fmt(
+    data_namespace: List[Type[NamespaceFile]],
+    assets_namespace: List[Type[NamespaceFile]],
+):
     class FmtResourcePack(Fmt[ResourcePack]):
         extension = ".resource_pack"
 
         def load(self, path: Path) -> ResourcePack:
-            return ignore_name(ResourcePack(path=path, extend_namespace=assets_namespace))
+            return ignore_name(
+                ResourcePack(path=path, extend_namespace=assets_namespace)
+            )
 
         def dump(self, path: Path, value: ResourcePack):
             value.save(path=path, overwrite=True)
@@ -45,7 +57,7 @@ def test_build(snapshot: SnapshotFixture, directory: str):
                 real_exception = PackVersionNotFoundError
             case _:
                 raise ValueError(f"Unknown exception {exception}")
-    
+
         with pytest.raises(real_exception):
             try:
                 with run_beet(directory=f"examples/{directory}") as ctx:
@@ -55,7 +67,7 @@ def test_build(snapshot: SnapshotFixture, directory: str):
                 if not isinstance(cause, real_exception):
                     raise e from None
                 raise cause from None
-            
+
     else:
         with run_beet(directory=f"examples/{directory}") as ctx:
             create_fmt(ctx.data.extend_namespace, ctx.assets.extend_namespace)

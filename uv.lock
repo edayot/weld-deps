@@ -63,6 +63,19 @@ wheels = [
 ]
 
 [[package]]
+name = "bolt"
+version = "0.50.0b5"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "beet" },
+    { name = "mecha" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/18/e4/1d89a94c3418cdcdc2c4326c2e3a390e65e772d93ccaf9e382717d3ba6d1/bolt-0.50.0b5.tar.gz", hash = "sha256:9a274134e0d685e58ca551a4d77773baa16688681ed2184e6502119b9ab11f41", size = 52365, upload-time = "2025-12-08T01:52:12.753Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e0/c7/c3ce065d853eedbe927a311cff4c875bbb87f850042291607f08259c069b/bolt-0.50.0b5-py3-none-any.whl", hash = "sha256:e3fdbd80c855c2ccd732eb45404f1cf47b79e74d13da2fc7c53fbfbaf742f096", size = 59768, upload-time = "2025-12-08T01:52:13.849Z" },
+]
+
+[[package]]
 name = "certifi"
 version = "2026.1.4"
 source = { registry = "https://pypi.org/simple" }
@@ -247,15 +260,15 @@ wheels = [
 
 [[package]]
 name = "mecha"
-version = "0.101.0"
+version = "0.102.0b2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "beet" },
     { name = "tokenstream" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/00/40/d0e25c36a6793bff6fa9ced487ee81fc69acae06838154cb2804b8388192/mecha-0.101.0.tar.gz", hash = "sha256:3fcf91c0ad9b73f43728df74ad9da9b311bcc15e8594167be1c47cb862e8ce43", size = 139327, upload-time = "2025-12-06T18:55:14.402Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d1/91/62aabc909b0bfcb4bba845e0de2b23cc123f62225fa9811c5af492b44f92/mecha-0.102.0b2.tar.gz", hash = "sha256:528a3774ed3fed6a4b908937772e8931d7c1de184cc1fdfddc1fd4c977d34f56", size = 554547, upload-time = "2025-12-11T22:39:33.71Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/8a/e4/848841f9a2523d63f22e967bf57cb5e398eb3e2e920d9acb726eb4c1ebd9/mecha-0.101.0-py3-none-any.whl", hash = "sha256:be66abc4c91957f4ff37dd85af7c19500dc8cdb899118c1d0c5254ac87b5e35a", size = 165726, upload-time = "2025-12-06T18:55:12.668Z" },
+    { url = "https://files.pythonhosted.org/packages/6f/fe/f93080acb77055a634540a7f33d07462c6d7a2ed69c2e7487f2b2ba87b59/mecha-0.102.0b2-py3-none-any.whl", hash = "sha256:810986e7180bc9a97f42149980fd9a756c33c195ee1e3be2d918dc17ff9ad402", size = 589459, upload-time = "2025-12-11T22:39:35.495Z" },
 ]
 
 [[package]]
@@ -657,6 +670,8 @@ dependencies = [
 
 [package.optional-dependencies]
 smithed = [
+    { name = "bolt" },
+    { name = "mecha" },
     { name = "smithed" },
 ]
 
@@ -670,6 +685,8 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "beet", specifier = ">=0.113.0b10" },
+    { name = "bolt", marker = "extra == 'smithed'", specifier = ">=0.50.0b5" },
+    { name = "mecha", marker = "extra == 'smithed'", specifier = ">=0.102.0b2" },
     { name = "requests", specifier = ">=2.31.0" },
     { name = "semver", specifier = ">=3.0.2" },
     { name = "smithed", marker = "extra == 'smithed'", specifier = ">=0.16.0" },

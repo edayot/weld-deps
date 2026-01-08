@@ -1,0 +1,17 @@
+
+output: build
+
+data_pack:
+  load: .
+
+require:
+  - weld_deps.contrib.mecha_auto_include.require
+
+pipeline:
+  - mecha
+  - weld_deps.contrib.mecha_auto_include.pipeline
+  - weld_deps
+
+meta:
+  weld_deps:
+    merge_with_weld: false
