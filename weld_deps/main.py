@@ -1,4 +1,5 @@
-from beet import Context, configurable, DataPack, ResourcePack
+from typing import Any
+from beet import Context, Pack, configurable, DataPack, ResourcePack, subproject
 from pprint import pprint
 from pydantic import AliasChoices, BaseModel, Field
 from typing_extensions import TypedDict, NotRequired, Union, Optional, Generator
@@ -347,20 +348,50 @@ def internal_plugin(ctx: Context, opts: DepsConfig) -> Generator[None, None, Non
                 from smithed import weld
 
                 ctx.require(
-                    weld.toolchain.main.subproject_config(
+                    subproject_config(
                         weld.toolchain.main.PackType.ASSETS, str(rp)
                     )
                 )
             else:
-                ctx.assets.merge(ResourcePack(name=f"weld_dep_{dep.id}", path=str(rp)))
+                pack = ResourcePack(name=f"weld_dep_{dep.id}", path=str(rp))
+                remove_pack_png(pack)
+                ctx.assets.merge(pack)
         if dp:
             if opts.merge_with_weld:
                 from smithed import weld
-
                 ctx.require(
-                    weld.toolchain.main.subproject_config(
+                    subproject_config(
                         weld.toolchain.main.PackType.DATA, str(dp)
                     )
                 )
             else:
-                ctx.data.merge(DataPack(name=f"weld_dep_{dep.id}", path=str(dp)))
+                pack = DataPack(name=f"weld_dep_{dep.id}", path=str(dp))
+                remove_pack_png(pack)
+                ctx.data.merge(pack)
+
+
+def remove_pack_png(ctx: Context | Pack):
+    if isinstance(ctx, Context):
+        packs = ctx.packs
+    else:
+        packs = [ctx]
+    for pack in packs:
+        pack.extra.pop("pack.png", None)
+
+
+def subproject_config(pack_type: Any, name: str = ""):
+    return subproject(
+        {
+            "require": [
+                "beet.contrib.auto_yaml",
+                "beet.contrib.model_merging",
+                "beet.contrib.unknown_files",
+            ],
+            pack_type: {"load": name},
+            "pipeline": [
+                remove_pack_png,
+                # "smithed.weld.print_pack_name",
+                "smithed.weld.inject_pack_stuff_into_smithed",
+            ],
+        }
+    )
