@@ -5,9 +5,7 @@
       "condition": "minecraft:location_check",
       "predicate": {
         "block": {
-          "blocks": [
-            "minecraft:barrel"
-          ],
+          "blocks": ["minecraft:barrel"],
           "nbt": "{Items:[{Slot:0b}]}"
         }
       }
@@ -16,9 +14,7 @@
       "condition": "minecraft:location_check",
       "predicate": {
         "block": {
-          "blocks": [
-            "minecraft:barrel"
-          ],
+          "blocks": ["minecraft:barrel"],
           "nbt": "{Items:[{Slot:1b}]}"
         }
       }
@@ -27,9 +23,7 @@
       "condition": "minecraft:location_check",
       "predicate": {
         "block": {
-          "blocks": [
-            "minecraft:barrel"
-          ],
+          "blocks": ["minecraft:barrel"],
           "nbt": "{Items:[{Slot:5b}]}"
         }
       }
@@ -38,9 +32,7 @@
       "condition": "minecraft:location_check",
       "predicate": {
         "block": {
-          "blocks": [
-            "minecraft:barrel"
-          ],
+          "blocks": ["minecraft:barrel"],
           "nbt": "{Items:[{Slot:6b}]}"
         }
       }
@@ -49,9 +41,7 @@
       "condition": "minecraft:location_check",
       "predicate": {
         "block": {
-          "blocks": [
-            "minecraft:barrel"
-          ],
+          "blocks": ["minecraft:barrel"],
           "nbt": "{Items:[{Slot:7b}]}"
         }
       }
@@ -60,9 +50,7 @@
       "condition": "minecraft:location_check",
       "predicate": {
         "block": {
-          "blocks": [
-            "minecraft:barrel"
-          ],
+          "blocks": ["minecraft:barrel"],
           "nbt": "{Items:[{Slot:8b}]}"
         }
       }
@@ -71,9 +59,7 @@
       "condition": "minecraft:location_check",
       "predicate": {
         "block": {
-          "blocks": [
-            "minecraft:barrel"
-          ],
+          "blocks": ["minecraft:barrel"],
           "nbt": "{Items:[{Slot:9b}]}"
         }
       }
@@ -82,9 +68,7 @@
       "condition": "minecraft:location_check",
       "predicate": {
         "block": {
-          "blocks": [
-            "minecraft:barrel"
-          ],
+          "blocks": ["minecraft:barrel"],
           "nbt": "{Items:[{Slot:10b}]}"
         }
       }
@@ -93,9 +77,7 @@
       "condition": "minecraft:location_check",
       "predicate": {
         "block": {
-          "blocks": [
-            "minecraft:barrel"
-          ],
+          "blocks": ["minecraft:barrel"],
           "nbt": "{Items:[{Slot:14b}]}"
         }
       }
@@ -104,9 +86,7 @@
       "condition": "minecraft:location_check",
       "predicate": {
         "block": {
-          "blocks": [
-            "minecraft:barrel"
-          ],
+          "blocks": ["minecraft:barrel"],
           "nbt": "{Items:[{Slot:15b}]}"
         }
       }
@@ -115,9 +95,7 @@
       "condition": "minecraft:location_check",
       "predicate": {
         "block": {
-          "blocks": [
-            "minecraft:barrel"
-          ],
+          "blocks": ["minecraft:barrel"],
           "nbt": "{Items:[{Slot:17b}]}"
         }
       }
@@ -126,9 +104,7 @@
       "condition": "minecraft:location_check",
       "predicate": {
         "block": {
-          "blocks": [
-            "minecraft:barrel"
-          ],
+          "blocks": ["minecraft:barrel"],
           "nbt": "{Items:[{Slot:18b}]}"
         }
       }
@@ -137,9 +113,7 @@
       "condition": "minecraft:location_check",
       "predicate": {
         "block": {
-          "blocks": [
-            "minecraft:barrel"
-          ],
+          "blocks": ["minecraft:barrel"],
           "nbt": "{Items:[{Slot:19b}]}"
         }
       }
@@ -148,9 +122,7 @@
       "condition": "minecraft:location_check",
       "predicate": {
         "block": {
-          "blocks": [
-            "minecraft:barrel"
-          ],
+          "blocks": ["minecraft:barrel"],
           "nbt": "{Items:[{Slot:23b}]}"
         }
       }
@@ -159,9 +131,7 @@
       "condition": "minecraft:location_check",
       "predicate": {
         "block": {
-          "blocks": [
-            "minecraft:barrel"
-          ],
+          "blocks": ["minecraft:barrel"],
           "nbt": "{Items:[{Slot:24b}]}"
         }
       }
@@ -170,9 +140,7 @@
       "condition": "minecraft:location_check",
       "predicate": {
         "block": {
-          "blocks": [
-            "minecraft:barrel"
-          ],
+          "blocks": ["minecraft:barrel"],
           "nbt": "{Items:[{Slot:25b}]}"
         }
       }
@@ -181,9 +149,7 @@
       "condition": "minecraft:location_check",
       "predicate": {
         "block": {
-          "blocks": [
-            "minecraft:barrel"
-          ],
+          "blocks": ["minecraft:barrel"],
           "nbt": "{Items:[{Slot:26b}]}"
         }
       }

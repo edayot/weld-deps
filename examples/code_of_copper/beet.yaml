@@ -7,6 +7,7 @@ require:
 
 meta:
   weld_deps:
+    merge_with_weld: false
     deps:
       code-of-copper:
         version: "0.3.0"

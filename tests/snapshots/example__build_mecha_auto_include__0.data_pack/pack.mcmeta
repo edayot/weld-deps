@@ -1,0 +1,8 @@
+{
+  "pack": {
+    "min_format": 88,
+    "max_format": 94,
+    "description": "Bookshelf position management system, allowing control over entity locations and rotations using scores."
+  },
+  "id": "bs.position"
+}

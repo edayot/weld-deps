@@ -1,6 +1,13 @@
 {
   "pack": {
-    "pack_format": 7,
-    "description": "Fancy Pants Template - CHANGE DESCRIPTION"
+    "min_format": [
+      75,
+      0
+    ],
+    "max_format": [
+      75,
+      0
+    ],
+    "description": ""
   }
 }

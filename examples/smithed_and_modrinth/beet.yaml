@@ -8,6 +8,7 @@ data_pack:
 
 meta:
   weld_deps:
+    merge_with_weld: false
     default_source: "modrinth"
     deps:
       smithed.crafter.dev:

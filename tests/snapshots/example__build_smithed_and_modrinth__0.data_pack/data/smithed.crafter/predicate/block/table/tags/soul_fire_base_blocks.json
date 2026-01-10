@@ -1,11 +1,11 @@
 {
-  "condition": "minecraft:entity_properties",
-  "entity": "this",
-  "predicate": {
-    "equipment": {
-      "mainhand": {
-        "items": "#minecraft:soul_fire_base_blocks"
-      }
+    "condition": "minecraft:entity_properties",
+    "entity": "this",
+    "predicate": {
+        "equipment": {
+            "mainhand": {
+                "items": "#minecraft:soul_fire_base_blocks"
+            }
+        }
     }
-  }
 }

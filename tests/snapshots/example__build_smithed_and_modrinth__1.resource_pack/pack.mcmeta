@@ -1,13 +1,6 @@
 {
   "pack": {
-    "min_format": [
-      69,
-      0
-    ],
-    "max_format": [
-      69,
-      0
-    ],
-    "description": ""
+    "pack_format": 32,
+    "description": "Native Library for Smithed\nAuthor: TheNuclearNexus\nVersion: 0.4.0"
   }
 }

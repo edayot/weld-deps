@@ -1,0 +1,16 @@
+
+data remove entity a97c9c67-fde0-4b89-926d-54fa4a866004 container.0
+data modify entity a97c9c67-fde0-4b89-926d-54fa4a866004 container.0 set from storage itemio:io input
+
+execute unless items entity a97c9c67-fde0-4b89-926d-54fa4a866004 container.0 *[minecraft:jukebox_playable] run return fail
+
+data remove storage itemio:main.input ItemUnique
+data modify storage itemio:main.input ItemUnique set from block ~ ~ ~ RecordItem
+
+scoreboard players set #override_stack_size itemio.math.input 1
+function itemio:v1.5.3/container/input/vanilla_custom/single_item/main
+scoreboard players set #override_stack_size itemio.math.input 0
+
+execute if score #success_input itemio.io matches 1 if data storage itemio:main.input ItemUnique.components run function itemio:v1.5.3/container/input/vanilla_custom/jukebox/loot_item_components with storage itemio:main.input ItemUnique
+
+execute if score #success_input itemio.io matches 1 unless data storage itemio:main.input ItemUnique.components run function itemio:v1.5.3/container/input/vanilla_custom/jukebox/loot_item with storage itemio:main.input ItemUnique

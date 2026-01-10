@@ -1,11 +1,1 @@
-{
-  "condition": "minecraft:entity_properties",
-  "entity": "this",
-  "predicate": {
-    "equipment": {
-      "mainhand": {
-        "items": "#minecraft:cluster_max_harvestables"
-      }
-    }
-  }
-}
+{"condition":"minecraft:entity_properties","entity":"this","predicate":{"equipment":{"mainhand":{"items":"#minecraft:cluster_max_harvestables"}}}}

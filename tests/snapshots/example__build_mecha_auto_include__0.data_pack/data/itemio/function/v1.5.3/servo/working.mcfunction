@@ -1,0 +1,21 @@
+
+execute if score #max_network_per_tick itemio.math matches 1.. run scoreboard players add #network_in_tick itemio.math 1
+
+scoreboard players operation #own_network.low itemio.math = @s itemio.network_id.low
+scoreboard players operation #own_network.high itemio.math = @s itemio.network_id.high
+
+execute as @e[type=#itemio:servos, tag=itemio.servo.initialised, predicate=itemio:v1.5.3/internal/same_id] run function itemio:v1.5.3/servo/add_tags
+
+scoreboard players set #network_as_insert itemio.math 0
+execute as @e[type=#itemio:servos, tag=itemio.servo.same_network, tag=itemio.servo.insert, scores={itemio.servo.cooldown=0}] at @s positioned ^ ^ ^-1 align xyz positioned ~0.5 ~0.5 ~0.5 run function itemio:v1.5.3/servo/get_facing
+
+scoreboard players set #servos_transfer itemio.math 1
+execute if score #network_as_insert itemio.math matches 1 as @e[tag=itemio.servo.same_network, tag=itemio.servo.extract] if score @s itemio.servo.cooldown matches 0 at @s run function itemio:v1.5.3/servo/make_transfer
+
+scoreboard players set #servos_transfer itemio.math 0
+
+execute store result score #temp itemio.math run tag @e[tag=itemio.servo.same_network] remove itemio.servo.same_network
+
+execute unless score #servos_in_tick itemio.math matches 0 run scoreboard players operation #servos_in_tick itemio.math += #servos_transfer itemio.math
+
+kill @e[tag=itemio.transfer.destination.temp]

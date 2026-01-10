@@ -8,6 +8,7 @@ data_pack:
 
 meta:
   weld_deps:
+    merge_with_weld: false
     default_source: "smithed" # This is not needed, smithed is the default for default_source
     deps:
       smithed.crafter.dev: # You can provide a version by a dict

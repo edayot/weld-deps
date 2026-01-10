@@ -1,0 +1,24 @@
+{
+    "__comment":"All container of minecraft",
+    "values": [
+        "furnace",
+        "blast_furnace",
+        "smoker",
+        
+        "hopper",
+
+        "dispenser",
+        "dropper",
+        "chest",
+        "copper_chest",
+        
+        "trapped_chest",
+        "#shulker_boxes",
+        "barrel",
+
+        "chiseled_bookshelf",
+        "brewing_stand",
+
+        {"id":"#itemio:container/crafter","required":false}
+    ]
+}

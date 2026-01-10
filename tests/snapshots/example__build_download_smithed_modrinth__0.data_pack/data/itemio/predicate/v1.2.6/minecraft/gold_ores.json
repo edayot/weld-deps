@@ -1,11 +1,1 @@
-{
-  "condition": "minecraft:entity_properties",
-  "entity": "this",
-  "predicate": {
-    "equipment": {
-      "mainhand": {
-        "items": "#minecraft:gold_ores"
-      }
-    }
-  }
-}
+{"condition":"minecraft:entity_properties","entity":"this","predicate":{"equipment":{"mainhand":{"items":"#minecraft:gold_ores"}}}}

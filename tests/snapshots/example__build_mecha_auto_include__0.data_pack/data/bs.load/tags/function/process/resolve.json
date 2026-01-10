@@ -1,0 +1,6 @@
+{
+  "values": [
+    "bs.load:resolve/health",
+    "bs.load:resolve/position"
+  ]
+}
