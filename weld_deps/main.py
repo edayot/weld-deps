@@ -377,6 +377,7 @@ def remove_pack_png(ctx: Context | Pack):
         packs = [ctx]
     for pack in packs:
         pack.extra.pop("pack.png", None)
+        pack.extra.pop("pack.mcmeta", None)
 
 
 def subproject_config(pack_type: Any, name: str = ""):
