@@ -369,6 +369,8 @@ def internal_plugin(ctx: Context, opts: DepsConfig) -> Generator[None, None, Non
                 remove_pack_png(pack)
                 ctx.data.merge(pack)
 
+    ctx.meta.setdefault("weld_deps_resolved_deps", []).extend(resolved_deps)
+
 
 def remove_pack_png(ctx: Context | Pack):
     if isinstance(ctx, Context):
