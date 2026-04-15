@@ -24,6 +24,8 @@ class PluginDepsHolder:
             "smithed.custom_block": "custom-block",
             "smithed.title": "title",
             "energy": "energy",
+            "custom_block_ext": "custom_block_ext",
+            "nbtsmelting": "nbtsmelting",
         }.get(namespace)
 
     @classmethod
