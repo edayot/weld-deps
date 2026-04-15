@@ -1,11 +1,1 @@
-{
-  "condition": "minecraft:entity_properties",
-  "entity": "this",
-  "predicate": {
-    "equipment": {
-      "mainhand": {
-        "items": "#minecraft:completes_find_tree_tutorial"
-      }
-    }
-  }
-}
+{"condition":"minecraft:entity_properties","entity":"this","predicate":{"equipment":{"mainhand":{"items":"#minecraft:completes_find_tree_tutorial"}}}}

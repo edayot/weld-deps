@@ -1,6 +1,13 @@
 {
   "pack": {
-    "pack_format": 12,
-    "description": "Moxlib - What would you do without it?"
+    "min_format": [
+      94,
+      1
+    ],
+    "max_format": [
+      94,
+      1
+    ],
+    "description": ""
   }
 }

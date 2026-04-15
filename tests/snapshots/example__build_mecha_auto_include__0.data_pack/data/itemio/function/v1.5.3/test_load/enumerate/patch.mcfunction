@@ -1,2 +1,0 @@
-
-execute if score #itemio.patch load.status matches ..3 unless score #itemio.patch load.status matches 3 run function itemio:v1.5.3/test_load/enumerate/set_version

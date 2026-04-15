@@ -1,7 +1,13 @@
 {
   "pack": {
-    "pack_format": 41,
-    "description": "Item input/output lib - Easy interaction between vanilla and custom containers\\n by AirDox_, v1.0.0 - Datapack"
-  },
-  "id": "itemio"
+    "min_format": [
+      94,
+      1
+    ],
+    "max_format": [
+      94,
+      1
+    ],
+    "description": ""
+  }
 }

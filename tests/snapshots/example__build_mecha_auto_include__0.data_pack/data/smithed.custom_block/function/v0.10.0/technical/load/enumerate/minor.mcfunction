@@ -1,0 +1,2 @@
+execute if score #smithed.custom_block.minor load.status matches ..10 unless score #smithed.custom_block.minor load.status matches 10 run function smithed.custom_block:v0.10.0/technical/load/enumerate/set_version
+execute unless score #smithed.custom_block.set load.status matches 1 if score #smithed.custom_block.minor load.status matches ..10 if score #smithed.custom_block.minor load.status matches 10 run function smithed.custom_block:v0.10.0/technical/load/enumerate/patch

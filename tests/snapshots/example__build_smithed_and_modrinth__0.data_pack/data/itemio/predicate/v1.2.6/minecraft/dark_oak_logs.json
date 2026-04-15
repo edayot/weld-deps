@@ -1,11 +1,1 @@
-{
-  "condition": "minecraft:entity_properties",
-  "entity": "this",
-  "predicate": {
-    "equipment": {
-      "mainhand": {
-        "items": "#minecraft:dark_oak_logs"
-      }
-    }
-  }
-}
+{"condition":"minecraft:entity_properties","entity":"this","predicate":{"equipment":{"mainhand":{"items":"#minecraft:dark_oak_logs"}}}}

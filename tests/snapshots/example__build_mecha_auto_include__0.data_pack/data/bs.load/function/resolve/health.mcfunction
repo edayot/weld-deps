@@ -1,5 +1,5 @@
 # ------------------------------------------------------------------------------------------------------------
-# Copyright (c) 2025 Gunivers
+# Copyright (c) 2026 Gunivers
 #
 # This file is part of the Bookshelf project (https://github.com/mcbookshelf/bookshelf).
 #
@@ -14,13 +14,13 @@
 # ------------------------------------------------------------------------------------------------------------
 
 # Identify the enabled version (the last one in the datapack list) and mark it as active
-data modify storage bs:data load.modules[{module:"bs.health",version:"3.2.0"}].enabled set value 1b
+data modify storage bs:data load.modules[{module:"bs.health",version:"4.0.1"}].enabled set value 1b
 
 # Return early if all versions have the same major version and the most recent one is enabled
 execute unless score #bs.health.major_versions load.status matches 2.. \
-  if score $bs.health.major load.status matches 3 \
-  if score $bs.health.minor load.status matches 2 \
-  if score $bs.health.patch load.status matches 0 \
+  if score $bs.health.major load.status matches 4 \
+  if score $bs.health.minor load.status matches 0 \
+  if score $bs.health.patch load.status matches 1 \
   run return 1
 
 # Format module specific errors

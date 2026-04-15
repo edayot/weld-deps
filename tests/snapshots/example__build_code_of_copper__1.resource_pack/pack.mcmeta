@@ -1,6 +1,13 @@
 {
   "pack": {
-    "pack_format": 13,
-    "description": "Programmable Copper Golems."
+    "min_format": [
+      75,
+      0
+    ],
+    "max_format": [
+      75,
+      0
+    ],
+    "description": ""
   }
 }
